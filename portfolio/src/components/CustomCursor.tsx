@@ -34,7 +34,7 @@ export default function CustomCursor() {
         <>
             {/* Main dot */}
             <motion.div
-                className="fixed top-0 left-0 z-[99999] pointer-events-none mix-blend-difference"
+                className="fixed top-0 left-0 z-99999 pointer-events-none mix-blend-difference"
                 animate={{
                     x: position.x - (isPointer ? 16 : 4),
                     y: position.y - (isPointer ? 16 : 4),
@@ -50,7 +50,7 @@ export default function CustomCursor() {
             </motion.div>
             {/* Ring follower */}
             <motion.div
-                className="fixed top-0 left-0 z-[99998] pointer-events-none"
+                className="fixed top-0 left-0 z-99998 pointer-events-none"
                 animate={{
                     x: position.x - 20,
                     y: position.y - 20,
