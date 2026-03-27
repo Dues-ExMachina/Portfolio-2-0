@@ -1,0 +1,116 @@
+Here's a comprehensive prompt you can use with an AI coding assistant (like Claude, Cursor, or GitHub Copilot) to build the Portfolio Agent backend:
+
+---Here's your complete build prompt — copy and paste this directly into Cursor, Claude, or any AI coding assistant:---
+
+Here is the full prompt to give your AI coding assistant:
+
+---
+
+> **Context:** I have an existing Next.js portfolio at `portfolio-1-0-ivory-phi.vercel.app`. I want to add an AI Portfolio Agent — a chat interface where visitors can ask anything about my work, and an intelligent agent answers using live GitHub data, semantic search over my indexed projects/CV, and a profile config. Here is exactly what I need built.
+>
+> ---
+>
+> **WHAT TO BUILD**
+>
+> A FastAPI backend that powers an AI agent embedded in my existing Next.js portfolio. The agent uses LangGraph to orchestrate tool calls via MCP, Pinecone for semantic retrieval of my projects/CV, the GitHub REST API for live repo data, and OpenAI (or Gemini) for embeddings and generation. Responses stream token-by-token to the frontend via Server-Sent Events.
+>
+> ---
+>
+> **BACKEND — FastAPI (Python)**
+>
+> Create a FastAPI app with the following:
+>
+> 1. `POST /chat` endpoint that accepts `{ message: string, session_id: string, history: [{role, content}] }` (validated with Pydantic) and returns a streaming SSE response.
+> 2. A LangGraph agent with a `StateGraph` that has these nodes:
+>    - `intent_classifier` — classifies the query (skill question, project question, recent activity, general bio)
+>    - `tool_router` — decides which tools to call based on intent
+>    - `tool_executor` — executes chosen MCP tools in parallel where possible
+>    - `answer_generator` — assembles context + history and streams from the LLM
+>    - `END`
+> 3. Four MCP tools the agent can call:
+>    - `pinecone_retrieval(query: str) -> list[Chunk]` — semantic search over the Pinecone index, returns top-5 chunks with source metadata
+>    - `github_live(endpoint: str) -> dict` — wraps GitHub REST API (repos, commits, README for a given repo, language stats). Needs a `GITHUB_TOKEN` env var.
+>    - `web_fetch(url: str) -> str` — fetches text content of a live deployed URL (for when a visitor asks about a specific project's live features)
+>    - `profile_tool() -> dict` — returns a hardcoded JSON profile (skills, education, certifications, contact). I'll fill this in.
+> 4. A system prompt that gives the agent a persona: "You are a knowledgeable, concise representative of [Name]. You have deep knowledge of their projects, code, commits, and skills. Answer in first person on their behalf. Be specific — cite actual project names, tech stacks, and commit details when relevant. Never make up information."
+> 5. An offline indexing script (`scripts/index.py`) that:
+>    - Fetches all public GitHub repos via GitHub API (README, description, language, topics)
+>    - Fetches content from a list of deployed URLs I provide
+>    - Loads a `profile.json` file with CV data
+>    - Chunks all text (512 tokens, 50 token overlap)
+>    - Embeds with `text-embedding-3-small`
+>    - Upserts into Pinecone with metadata: `{source, project_name, chunk_type, url}`
+>    - Logs progress clearly
+> 6. A `profile.json` template file I can fill in with: name, skills (list), education, experience (list of roles), certifications, bio.
+> 7. LangSmith tracing — wrap the LangGraph app with `langsmith.traceable` and read `LANGCHAIN_API_KEY` from env.
+> 8. CORS configured to allow my Vercel frontend domain.
+>
+> ---
+>
+> **FRONTEND — Next.js component (drop-in)**
+>
+> Create a single `components/PortfolioChat.tsx` component I can drop into my existing Next.js app. It should:
+>
+> 1. Render a floating chat button (bottom-right corner) that opens a chat drawer/modal.
+> 2. Inside the chat: message thread, input box, send button, loading indicator.
+> 3. Stream responses from `NEXT_PUBLIC_AGENT_URL/chat` using `EventSource` or `fetch` with `ReadableStream`. Show text word-by-word as it arrives.
+> 4. Show a small "tools used" badge under each assistant message listing which tools the agent called (Pinecone, GitHub, Web, Profile). The backend should include tool names in a `data: {"tools": [...]}` SSE event before the text stream.
+> 5. Show 3 suggested questions below the input on first open: `"What's the most complex project [Name] has built?"`, `"What backend technologies does [Name] use?"`, `"Has [Name] worked with RAG before?"` — clicking one pre-fills the input.
+> 6. Multi-turn: keep full conversation history in component state and send it with each request.
+> 7. Styled with Tailwind only. Dark mode compatible. No extra UI libraries.
+>
+> ---
+>
+> **PROJECT STRUCTURE**
+>
+> ```
+> portfolio-agent/
+>   backend/
+>     main.py           # FastAPI app + /chat endpoint
+>     agent.py          # LangGraph StateGraph definition
+>     tools.py          # All 4 MCP tools
+>     indexer.py        # Offline indexing script
+>     profile.json      # CV template
+>     requirements.txt
+>     .env.example      # All required env vars
+>   frontend/
+>     PortfolioChat.tsx # Drop-in Next.js component
+> ```
+>
+> ---
+>
+> **ENV VARS NEEDED**
+>
+> ```
+> OPENAI_API_KEY
+> PINECONE_API_KEY
+> PINECONE_INDEX_NAME
+> GITHUB_TOKEN
+> LANGCHAIN_API_KEY
+> LANGCHAIN_TRACING_V2=true
+> NEXT_PUBLIC_AGENT_URL=http://localhost:8000
+> ```
+>
+> ---
+>
+> **CONSTRAINTS & PREFERENCES**
+>
+> - Python 3.11+, FastAPI, LangGraph 0.2+, `langchain-openai`, `pinecone-client`, `httpx`, `pydantic v2`
+> - TypeScript strict mode in the frontend component
+> - No auth for now — this is a public portfolio
+> - Keep `indexer.py` idempotent — safe to re-run, upserts only
+> - Add a `README.md` with clear local setup steps, how to run the indexer, and how to deploy backend to Railway/Render
+>
+> Start with `backend/main.py`, `backend/agent.py`, and `backend/tools.py`. Then do `backend/indexer.py`. Then `frontend/PortfolioChat.tsx`. Then `README.md`.
+
+---
+
+A few tips on how to use this prompt effectively:
+
+**Run it in stages.** After the backend files are generated, test `POST /chat` locally with a `curl` before moving to the frontend. The agent loop is the hardest part — get it stable first.
+
+**Fill in `profile.json` early.** The indexer and the `profile_tool` both depend on it. The richer your JSON, the better the agent's answers on bio/skill questions without needing Pinecone.
+
+**Run the indexer before testing the full flow.** Until Pinecone has your data, the agent will fall back to just the GitHub and profile tools, which is still useful but incomplete.
+
+**Deploy order:** Backend to Railway/Render first → set `NEXT_PUBLIC_AGENT_URL` in Vercel env → drop in `PortfolioChat.tsx`.
