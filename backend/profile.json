@@ -1,0 +1,88 @@
+{
+  "name": "Anubhab Das",
+  "bio": "Motivated Computer Science undergraduate with strong fundamentals in programming, Generative AI development, and problem-solving. Seeking an entry-level software engineering or internship role to apply technical skills, gain industry experience, and contribute to real-world projects.",
+
+  "skills": [
+    "Python",
+    "FastAPI",
+    "LangChain",
+    "LangGraph",
+    "Pydantic",
+    "RAG",
+    "HuggingFace",
+    "OpenAI API",
+    "LLMs",
+    "LangSmith",
+    "ReAct",
+    "HTML",
+    "CSS",
+    "TailwindCSS",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "Git",
+    "GitHub",
+    "SQLite",
+    "MongoDB",
+    "Vector Databases",
+    "Pinecone",
+    "ChromaDB",
+    "MCP (Model Context Protocol)",
+    "Data Structures and Algorithms",
+    "OOP",
+    "REST APIs",
+    "Streaming (SSE)",
+    "Prompt Engineering"
+  ],
+
+  "education": "B.Tech in Computer Science from Elitte College of Engineering (MAKAUT), 2023–2026, CGPA: 7.0",
+
+  "experience": [
+    {
+      "role": "Freelance AI Developer",
+      "company": "Self-employed",
+      "period": "2024–Present",
+      "description": "Built and deployed multiple Generative AI applications including RAG pipelines, LLM-powered agents, and AI-integrated portfolio tools."
+    }
+  ],
+
+  "certifications": [
+    "Generative AI with LangChain — Udemy",
+    "Python for Data Science — Coursera"
+  ],
+
+  "projects": [
+    {
+      "name": "AI Workspace Pro (Final Year Project)",
+      "description": "Developed a backend-driven AI workspace using Python and FastAPI. Designed REST APIs and integrated database functionality. Improved understanding of scalable backend architecture and debugging.",
+      "tech_stack": ["Python", "FastAPI"],
+      "url": "https://github.com/Dues-ExMachina/Ai-WorkSpace-Pro"
+    },
+    {
+      "name": "Expense Tracker with MCP Agent",
+      "description": "Built an agentic finance app using LangChain and Groq for natural language task execution. Implemented Model Context Protocol (MCP) to connect LLMs with modular external tools and servers. Orchestrated multi-step reasoning pipelines for automated tool execution and context-aware responses.",
+      "tech_stack": ["Python", "LangChain", "Groq", "MCP", "Streamlit"],
+      "url": "https://ai-chatbot-mcp-cpwrf58ktxybtxpq8swjku.streamlit.app/"
+    },
+    {
+      "name": "Portfolio AI Agent",
+      "description": "A full-stack AI portfolio assistant that answers visitor questions using a LangGraph StateGraph agent, Pinecone semantic search, GitHub live data, and streaming SSE responses. Built with FastAPI backend and Next.js frontend.",
+      "tech_stack": ["Python", "FastAPI", "LangGraph", "Pinecone", "Next.js", "TypeScript", "Groq"],
+      "url": "https://portfolio-1-0-ivory-phi.vercel.app"
+    },
+    {
+      "name": "AI Blogger Agent",
+      "description": "An AI agent that autonomously researches topics and generates structured blog posts using multi-step reasoning and tool use.",
+      "tech_stack": ["Python", "LangChain", "OpenAI"],
+      "url": "https://github.com/Dues-ExMachina"
+    }
+  ],
+
+  "contact": {
+    "email": "anubhabd45@gmail.com",
+    "linkedin": "https://linkedin.com/in/anubhab-das45/",
+    "github": "https://github.com/Dues-ExMachina",
+    "mobile": "+91 8983734092",
+    "portfolio": "https://portfolio-1-0-ivory-phi.vercel.app"
+  }
+}
