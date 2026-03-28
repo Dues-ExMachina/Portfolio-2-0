@@ -1,10 +1,8 @@
-
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, ThumbsUp, Copy, Check } from "lucide-react";
+import { X, Send, Copy, Check, Sparkles, ChevronDown } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -14,317 +12,119 @@ type Message =
   | { role: "user"; text: string }
   | { role: "assistant"; text: string; tools?: string[] };
 
-// ─── Glowing Orb ─────────────────────────────────────────────────────────────
-
-function GlowingOrb({ state, size = 100 }: { state: OrbState; size?: number }) {
-  const isThinking = state === "thinking";
-  const isSearching = state === "searching";
-
+// ─── Mini orb for header ─────────────────────────────────────────────────────
+function MiniOrb({ state }: { state: OrbState }) {
+  const isBusy = state === "thinking" || state === "searching" || state === "streaming";
   return (
-    <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
-      {/* Ambient glow */}
-      <motion.div
-        style={{
-          position: "absolute",
-          inset: -size * 0.3,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(30,100,255,0.2) 0%, transparent 70%)",
-          filter: "blur(16px)",
-        }}
-        animate={{ scale: isThinking ? [1, 1.2, 0.9, 1.15, 1] : [1, 1.06, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: isThinking ? 1.4 : 3, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Orb body */}
+    <div style={{ position: "relative", width: 28, height: 28, flexShrink: 0 }}>
       <motion.div
         style={{
           position: "absolute",
           inset: 0,
           borderRadius: "50%",
           background:
-            "radial-gradient(ellipse at 35% 30%, rgba(80,160,255,0.95) 0%, rgba(20,60,200,0.88) 45%, rgba(8,18,110,0.98) 100%)",
-          boxShadow: isThinking
-            ? "0 0 50px 18px rgba(30,120,255,0.7), 0 0 100px 35px rgba(30,80,255,0.3)"
-            : "0 0 60px 22px rgba(30,120,255,0.55), 0 0 120px 50px rgba(20,70,255,0.22)",
-          border: "1px solid rgba(100,180,255,0.3)",
+            "radial-gradient(ellipse at 35% 30%, rgba(100,180,255,0.95) 0%, rgba(30,80,220,0.9) 45%, rgba(8,20,120,0.98) 100%)",
+          boxShadow: isBusy
+            ? "0 0 14px 5px rgba(50,130,255,0.65)"
+            : "0 0 10px 3px rgba(30,100,255,0.4)",
         }}
-        animate={{
-          borderRadius: isThinking
-            ? [
-              "40% 60% 55% 45%/45% 40% 60% 55%",
-              "55% 45% 40% 60%/60% 55% 45% 40%",
-              "40% 60% 55% 45%/45% 40% 60% 55%",
-            ]
-            : isSearching
-              ? [
-                "48% 52% 46% 54%/50% 48% 52% 50%",
-                "52% 48% 54% 46%/50% 52% 48% 50%",
-                "48% 52% 46% 54%/50% 48% 52% 50%",
-              ]
-              : ["50%"],
-          rotate: isThinking ? [0, 12, -8, 18, 0] : [0, 4, -2, 0],
-          scale: isThinking ? [1, 0.94, 1.06, 0.96, 1] : [1, 1.02, 1],
-        }}
-        transition={{ duration: isThinking ? 1.6 : isSearching ? 2.2 : 4, repeat: Infinity, ease: "easeInOut" }}
+        animate={isBusy ? { scale: [1, 1.08, 0.95, 1] } : { scale: 1 }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       />
-
-      {/* Ring 1 */}
       <motion.div
         style={{
           position: "absolute",
-          inset: "5%",
+          inset: "8%",
           borderRadius: "50%",
-          boxShadow: "inset 0 0 0 1.5px rgba(120,200,255,0.55)",
+          boxShadow: "inset 0 0 0 1.5px rgba(120,210,255,0.7)",
         }}
-        animate={{ transform: ["rotateX(70deg) rotateZ(0deg)", "rotateX(70deg) rotateZ(360deg)"] }}
-        transition={{ duration: isThinking ? 1.8 : 5.5, repeat: Infinity, ease: "linear" }}
+        animate={{ transform: ["rotateX(65deg) rotateZ(0deg)", "rotateX(65deg) rotateZ(360deg)"] }}
+        transition={{ duration: isBusy ? 1.2 : 4, repeat: Infinity, ease: "linear" }}
       />
-
-      {/* Ring 2 */}
-      <motion.div
-        style={{
-          position: "absolute",
-          inset: "12%",
-          borderRadius: "50%",
-          boxShadow: "inset 0 0 0 1.5px rgba(140,220,255,0.45)",
-        }}
-        animate={{
-          transform: [
-            "rotateX(55deg) rotateY(30deg) rotateZ(0deg)",
-            "rotateX(55deg) rotateY(30deg) rotateZ(360deg)",
-          ],
-        }}
-        transition={{ duration: isThinking ? 1.3 : 4.2, repeat: Infinity, ease: "linear" }}
-      />
-
-      {/* Ring 3 – cyan */}
-      <motion.div
-        style={{
-          position: "absolute",
-          inset: "22%",
-          borderRadius: "50%",
-          boxShadow: "inset 0 0 0 1.5px rgba(0,230,255,0.65)",
-        }}
-        animate={{
-          transform: [
-            "rotateX(20deg) rotateY(60deg) rotateZ(0deg)",
-            "rotateX(20deg) rotateY(60deg) rotateZ(360deg)",
-          ],
-        }}
-        transition={{ duration: isThinking ? 1 : 3.5, repeat: Infinity, ease: "linear" }}
-      />
-
-      {/* Specular highlight */}
       <div
         style={{
           position: "absolute",
-          top: "12%",
-          left: "18%",
-          width: "28%",
-          height: "18%",
+          top: "15%",
+          left: "20%",
+          width: "24%",
+          height: "16%",
           borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(200,230,255,0.7) 0%, transparent 100%)",
-          filter: "blur(3px)",
+          background: "radial-gradient(ellipse, rgba(220,240,255,0.75) 0%, transparent 100%)",
+          filter: "blur(1px)",
         }}
       />
-
-      {/* Searching tendrils */}
-      {isSearching &&
-        [0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            style={{
-              position: "absolute",
-              bottom: -14 - i * 8,
-              left: `${28 + i * 22}%`,
-              width: 2,
-              height: 8 + i * 5,
-              background: "linear-gradient(to bottom, rgba(80,160,255,0.8), transparent)",
-              borderRadius: 4,
-            }}
-            animate={{ opacity: [0.3, 1, 0.3], scaleY: [0.8, 1.3, 0.8] }}
-            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
-          />
-        ))}
     </div>
   );
 }
 
-// ─── Frosted Glass Pill ───────────────────────────────────────────────────────
-
-function FrostPill({
-  children,
-  style,
-  onClick,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-}) {
+// ─── Typing dots ─────────────────────────────────────────────────────────────
+function TypingDots() {
   return (
-    <div
-      onClick={onClick}
-      style={{
-        background: "rgba(255,255,255,0.07)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: 999,
-        cursor: onClick ? "pointer" : undefined,
-        ...style,
-      }}
-    >
-      {children}
+    <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "12px 16px" }}>
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(100,160,255,0.7)" }}
+          animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+        />
+      ))}
     </div>
   );
 }
 
-// ─── Tool Row ────────────────────────────────────────────────────────────────
-
-function ToolRow({
-  color,
-  icon,
-  label,
-  subtitle,
-  result,
-  done,
-  active,
-}: {
-  color: string;
-  icon: string;
-  label: string;
-  subtitle: string;
-  result: string;
-  done: boolean;
-  active: boolean;
-}) {
+// ─── Tool badge ──────────────────────────────────────────────────────────────
+function ToolBadge({ tools }: { tools: string[] }) {
+  const colors: Record<string, string> = {
+    Pinecone: "#a855f7",
+    GitHub: "#6e7681",
+    "Web Fetch": "#22d3ee",
+    Profile: "#f59e0b",
+  };
   return (
-    <motion.div
-      animate={
-        active
-          ? {
-            boxShadow: [
-              `0 0 0px 0px ${color}00`,
-              `0 0 12px 2px ${color}55`,
-              `0 0 6px 1px ${color}33`,
-            ],
-          }
-          : { boxShadow: "0 0 0px 0px transparent" }
-      }
-      transition={{ duration: 1.4, repeat: active ? Infinity : 0, ease: "easeInOut" }}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        background: active ? `${color}12` : "rgba(255,255,255,0.04)",
-        border: active
-          ? `1px solid ${color}55`
-          : done
-            ? `1px solid ${color}30`
-            : "1px solid rgba(255,255,255,0.08)",
-        borderLeft: `3px solid ${color}`,
-        borderRadius: 16,
-        padding: "10px 14px",
-        transition: "background 0.4s, border-color 0.4s",
-      }}
-    >
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: `${color}22`,
-          border: `1.5px solid ${color}55`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 13,
-          flexShrink: 0,
-          boxShadow: active ? `0 0 10px 2px ${color}44` : "none",
-          transition: "box-shadow 0.3s",
-        }}
-      >
-        {icon}
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
+    <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 6 }}>
+      {tools.map((t) => (
+        <span
+          key={t}
           style={{
-            color: active ? "#fff" : done ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.6)",
-            fontSize: 13,
-            fontWeight: 600,
-            lineHeight: 1.2,
-            transition: "color 0.3s",
-          }}
-        >
-          {label}
-          {active && (
-            <motion.span
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 0.9, repeat: Infinity }}
-              style={{
-                display: "inline-block",
-                marginLeft: 6,
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: color,
-                verticalAlign: "middle",
-              }}
-            />
-          )}
-        </div>
-        <div style={{ color: "rgba(255,255,255,0.38)", fontSize: 11, marginTop: 2 }}>
-          {subtitle}
-        </div>
-      </div>
-
-      {done ? (
-        <div
-          style={{
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
             gap: 4,
-            color,
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: 600,
-            background: `${color}18`,
-            border: `1px solid ${color}33`,
+            color: colors[t] ?? "#888",
+            background: `${colors[t] ?? "#888"}15`,
+            border: `1px solid ${colors[t] ?? "#888"}30`,
             borderRadius: 999,
-            padding: "3px 8px",
+            padding: "2px 8px",
+            letterSpacing: "0.02em",
           }}
         >
-          <Check size={10} strokeWidth={2.5} />
-          <span>{result}</span>
-        </div>
-      ) : (
-        <motion.div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            border: `2px solid ${color}55`,
-            borderTopColor: color,
-          }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
-        />
-      )}
-    </motion.div>
+          <div
+            style={{ width: 5, height: 5, borderRadius: "50%", background: colors[t] ?? "#888" }}
+          />
+          {t}
+        </span>
+      ))}
+    </div>
   );
 }
 
-// ─── Chat Panel Content ───────────────────────────────────────────────────────
+// ─── renderText helper ────────────────────────────────────────────────────────
+function renderText(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i} style={{ color: "#c8e0ff" }}>{part}</strong> : <span key={i}>{part}</span>
+  );
+}
 
+// ─── Chat Panel ───────────────────────────────────────────────────────────────
 function ChatPanel({ onClose }: { onClose: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [orbState, setOrbState] = useState<OrbState>("idle");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
-  const [showTools, setShowTools] = useState(false);
-  const [toolsDone, setToolsDone] = useState([false, false, false]);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -336,41 +136,35 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
     "Has he worked with RAG before?",
   ];
 
+  const isBusy = orbState === "thinking" || orbState === "searching" || isStreaming;
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText, showTools]);
+  }, [messages, streamingText, isStreaming]);
+
+  useEffect(() => {
+    if (!isBusy) inputRef.current?.focus();
+  }, [isBusy]);
 
   async function handleSend(overrideInput?: string) {
     const q = (overrideInput ?? input).trim();
     if (!q || isBusy) return;
 
-    const newMessages = [...messages, { role: "user" as const, text: q }];
+    const newMessages: Message[] = [...messages, { role: "user", text: q }];
     setMessages(newMessages);
     setInput("");
-
     setOrbState("thinking");
-    setShowTools(false);
     setStreamingText("");
-    setIsStreaming(true);
+    setIsStreaming(false);
 
-    const history = messages.map((m) => ({
-      role: m.role,
-      content: m.text,
-    }));
+    const history = messages.map((m) => ({ role: m.role, content: m.text }));
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_AGENT_URL}/chat`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: q,
-            session_id: "portfolio-session",
-            history,
-          }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_AGENT_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: q, session_id: "portfolio-session", history }),
+      });
 
       if (!res.body) throw new Error("No response body");
 
@@ -382,6 +176,7 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
       let buffer = "";
 
       setOrbState("streaming");
+      setIsStreaming(true);
 
       while (true) {
         const { done, value } = await reader.read();
@@ -393,144 +188,112 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
 
         for (const line of lines) {
           if (!line.startsWith("data:")) continue;
-
           const data = line.replace("data:", "").trim();
 
           if (data === "[DONE]") {
             setIsStreaming(false);
             setOrbState("done");
-            setMessages((prev) => [
-              ...prev,
-              { role: "assistant", text: fullText, tools },
-            ]);
+            setMessages((prev) => [...prev, { role: "assistant", text: fullText, tools }]);
             setStreamingText("");
             return;
           }
 
           try {
             const parsed = JSON.parse(data);
-
-            if (parsed.type === "tools") {
-              setShowTools(true);
-              setToolsDone([true, true, true]);
-              tools = parsed.tools || [];
-            }
-
+            if (parsed.type === "tools") tools = parsed.tools || [];
             if (parsed.type === "text") {
               fullText += parsed.token;
               setStreamingText(fullText);
             }
-          } catch (err) {
-            console.error("Parse error:", err);
-          }
+          } catch {}
         }
       }
     } catch (err) {
       console.error(err);
       setOrbState("idle");
       setIsStreaming(false);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Sorry, I couldn't connect to the backend. Please try again." },
+      ]);
     }
   }
 
-  function handleSuggestion(s: string) {
-    if (isBusy) return;
-    setInput(s); // Update UI so it's visible in input
-    handleSend(s); // Pass string directly to bypass async state update
-  }
-
-  function handleCopy(text: string) {
+  function handleCopy(text: string, idx: number) {
     navigator.clipboard.writeText(text.replace(/\*\*/g, ""));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setCopied(idx);
+    setTimeout(() => setCopied(null), 1800);
   }
 
-  const isBusy = orbState === "thinking" || orbState === "searching" || isStreaming;
   const charCount = input.length;
-  const charNearLimit = charCount > MAX_CHARS * 0.8;
   const charOverLimit = charCount > MAX_CHARS;
 
-  const activeToolIndex = !toolsDone[0] ? 0 : !toolsDone[1] ? 1 : !toolsDone[2] ? 2 : -1;
-
-  function renderText(text: string) {
-    return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
-      i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>
-    );
-  }
-
   return (
-    <motion.div
-      animate={{
-        boxShadow: [
-          "0 0 0px 1px rgba(255,255,255,0.08), 0 0 18px 2px rgba(30,100,255,0.25), 0 32px 80px rgba(0,0,0,0.7)",
-          "0 0 0px 1px rgba(100,160,255,0.3),  0 0 32px 8px rgba(30,100,255,0.55), 0 32px 80px rgba(0,0,0,0.7)",
-          "0 0 0px 1px rgba(0,220,255,0.25),   0 0 22px 4px rgba(0,180,255,0.35),  0 32px 80px rgba(0,0,0,0.7)",
-          "0 0 0px 1px rgba(255,255,255,0.08), 0 0 18px 2px rgba(30,100,255,0.25), 0 32px 80px rgba(0,0,0,0.7)",
-        ],
-      }}
-      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    <div
       style={{
-        width: 340,
-        height: 520,
-        background: "#050810",
-        borderRadius: 28,
-        border: "1px solid rgba(80,160,255,0.2)",
-        overflow: "hidden",
+        width: 360,
+        height: 560,
+        background: "rgba(6, 9, 20, 0.97)",
+        borderRadius: 24,
+        border: "1px solid rgba(80,140,255,0.18)",
+        boxShadow:
+          "0 0 0 1px rgba(255,255,255,0.05), 0 24px 80px rgba(0,0,0,0.75), 0 0 60px rgba(30,80,255,0.12)",
         display: "flex",
         flexDirection: "column",
-        position: "relative",
-        fontFamily: "'Inter', sans-serif",
-        zIndex: 9999,
+        fontFamily: "'Inter', system-ui, sans-serif",
+        overflow: "hidden",
       }}
     >
+      {/* Ambient gradient */}
       <div
         style={{
           position: "absolute",
-          bottom: -80,
+          bottom: -60,
           left: "50%",
           transform: "translateX(-50%)",
-          width: 420,
-          height: 280,
+          width: "140%",
+          height: 260,
           background:
-            "radial-gradient(ellipse at center bottom, rgba(20,80,220,0.5) 0%, rgba(10,30,120,0.15) 55%, transparent 75%)",
+            "radial-gradient(ellipse at center bottom, rgba(20,60,200,0.35) 0%, transparent 70%)",
           pointerEvents: "none",
-          zIndex: 0,
         }}
       />
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "13px 18px 11px",
-          zIndex: 1,
+          padding: "14px 16px 12px",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
           flexShrink: 0,
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: orbState === "idle" || orbState === "done" ? "#22d3ee" : "#a855f7",
-            }}
-          >
-            <motion.div
-              style={{ width: 8, height: 8, borderRadius: "50%", background: "inherit" }}
-              animate={{ opacity: isBusy ? [1, 0.3, 1] : 1 }}
-              transition={{ duration: 1.1, repeat: isBusy ? Infinity : 0 }}
-            />
+          <MiniOrb state={orbState} />
+          <div>
+            <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>
+              Portfolio Agent
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 1 }}>
+              {isBusy
+                ? orbState === "thinking"
+                  ? "Thinking…"
+                  : orbState === "searching"
+                  ? "Searching…"
+                  : "Writing…"
+                : "Online · Ask me anything"}
+            </div>
           </div>
-          <span style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>Portfolio Agent</span>
         </div>
         <button
           onClick={onClose}
           style={{
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "50%",
             width: 30,
             height: 30,
@@ -538,383 +301,342 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(255,255,255,0.5)",
+            flexShrink: 0,
+            transition: "background 0.2s",
           }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)")
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)")
+          }
+          aria-label="Close chat"
         >
-          <X size={14} />
+          <ChevronDown size={15} />
         </button>
       </div>
 
-      {/* Messages area */}
+      {/* ── Messages ── */}
       <div
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "12px 16px",
-          zIndex: 1,
+          padding: "14px 14px 8px",
           display: "flex",
           flexDirection: "column",
-          gap: 10,
+          gap: 12,
+          position: "relative",
+          zIndex: 1,
+          scrollbarWidth: "none",
         }}
       >
+        {/* Empty state */}
         {messages.length === 0 && !isBusy && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 10,
-              paddingTop: 8,
-              paddingBottom: 4,
-            }}
-          >
-            <GlowingOrb state="idle" size={76} />
-            <div style={{ textAlign: "center" }}>
-              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12.5, marginBottom: 4 }}>
-                Portfolio Agent
-              </div>
-              <div style={{ color: "#fff", fontSize: 16, fontWeight: 700, lineHeight: 1.25 }}>
-                How can I help
-                <br />
-                you today?
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "100%", marginTop: 4 }}>
-              {SUGGESTIONS.map((s) => (
-                <FrostPill
-                  key={s}
-                  onClick={() => handleSuggestion(s)}
-                  style={{
-                    padding: "8px 14px",
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: 11.5,
-                    textAlign: "center",
-                  }}
-                >
-                  {s}
-                </FrostPill>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {orbState === "thinking" && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 8,
-              padding: "12px 0",
-            }}
-          >
-            <GlowingOrb state="thinking" size={64} />
-          </div>
-        )}
-
-        {showTools && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 20,
-              padding: "10px",
-              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 16,
+              paddingTop: 12,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                marginBottom: 12,
-              }}
-            >
+            {/* Hero orb */}
+            <div style={{ position: "relative", width: 72, height: 72 }}>
               <motion.div
-                style={{ width: 7, height: 7, borderRadius: "50%", background: "#a855f7" }}
-                animate={{ opacity: [1, 0.2, 1] }}
-                transition={{ duration: 1.1, repeat: Infinity }}
-              />
-              <span
                 style={{
-                  color: "rgba(255,255,255,0.6)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
+                  position: "absolute",
+                  inset: -16,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle, rgba(30,100,255,0.18) 0%, transparent 70%)",
+                  filter: "blur(12px)",
                 }}
-              >
-                Agent is working
-              </span>
+                animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.9, 0.5] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(ellipse at 35% 30%, rgba(100,185,255,0.95) 0%, rgba(25,75,220,0.9) 45%, rgba(8,18,110,0.98) 100%)",
+                  boxShadow:
+                    "0 0 40px 10px rgba(30,100,255,0.4), 0 0 80px 30px rgba(20,60,220,0.18)",
+                  border: "1px solid rgba(100,180,255,0.25)",
+                }}
+                animate={{ rotate: [0, 4, -2, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                style={{
+                  position: "absolute",
+                  inset: "8%",
+                  borderRadius: "50%",
+                  boxShadow: "inset 0 0 0 1.5px rgba(120,210,255,0.6)",
+                }}
+                animate={{ transform: ["rotateX(65deg) rotateZ(0deg)", "rotateX(65deg) rotateZ(360deg)"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  top: "13%",
+                  left: "18%",
+                  width: "26%",
+                  height: "16%",
+                  borderRadius: "50%",
+                  background: "radial-gradient(ellipse, rgba(210,235,255,0.7) 0%, transparent 100%)",
+                  filter: "blur(2px)",
+                }}
+              />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <ToolRow
-                color="#a855f7"
-                icon="🗂️"
-                label="Pinecone"
-                subtitle="Searching knowledge base..."
-                result="5 chunks"
-                done={toolsDone[0]}
-                active={activeToolIndex === 0}
-              />
-              <ToolRow
-                color="#6e7681"
-                icon="⬡"
-                label="GitHub"
-                subtitle="Fetching latest repos..."
-                result="3 repos"
-                done={toolsDone[1]}
-                active={activeToolIndex === 1}
-              />
-              <ToolRow
-                color="#22d3ee"
-                icon="🌐"
-                label="Web Fetch"
-                subtitle="Reading ycloude.com..."
-                result="Content extracted"
-                done={toolsDone[2]}
-                active={activeToolIndex === 2}
-              />
+
+            <div style={{ textAlign: "center" }}>
+              <div style={{ color: "#fff", fontSize: 17, fontWeight: 700, lineHeight: 1.3, marginBottom: 4 }}>
+                Hey, I&apos;m Anubhab&apos;s AI
+              </div>
+              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12.5, lineHeight: 1.5 }}>
+                Ask me about his projects, skills,
+                <br />
+                or anything else on the portfolio.
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleSend(s)}
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 12,
+                    padding: "9px 14px",
+                    color: "rgba(255,255,255,0.65)",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontFamily: "inherit",
+                    transition: "background 0.2s, border-color 0.2s, color 0.2s",
+                    lineHeight: 1.4,
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLButtonElement;
+                    el.style.background = "rgba(60,120,255,0.12)";
+                    el.style.borderColor = "rgba(80,140,255,0.35)";
+                    el.style.color = "rgba(255,255,255,0.9)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLButtonElement;
+                    el.style.background = "rgba(255,255,255,0.05)";
+                    el.style.borderColor = "rgba(255,255,255,0.1)";
+                    el.style.color = "rgba(255,255,255,0.65)";
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
 
-        {isStreaming && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <GlowingOrb state="streaming" size={44} />
-            </div>
-            <FrostPill
-              style={{
-                padding: "5px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                alignSelf: "flex-start",
-              }}
-            >
-              {["#a855f7", "#6e7681", "#22d3ee"].map((c) => (
-                <div
-                  key={c}
-                  style={{ width: 6, height: 6, borderRadius: "50%", background: c }}
-                />
-              ))}
-              <span style={{ color: "rgba(255,255,255,0.42)", fontSize: 11 }}>
-                Pinecone · GitHub · Web
-              </span>
-            </FrostPill>
-            <div
-              style={{
-                alignSelf: "flex-start",
-                background: "rgba(30,35,55,0.7)",
-                border: "1px solid rgba(100,160,255,0.15)",
-                borderRadius: "5px 20px 20px 20px",
-                padding: "10px 16px",
-                color: "#fff",
-                fontSize: 13.5,
-                lineHeight: 1.7,
-                letterSpacing: "0.01em",
-                maxWidth: "88%",
-              }}
-            >
-              {renderText(streamingText)}
-              <motion.span
-                style={{
-                  display: "inline-block",
-                  width: 2,
-                  height: "1em",
-                  background: "rgba(80,160,255,0.9)",
-                  borderRadius: 1,
-                  marginLeft: 2,
-                  verticalAlign: "text-bottom",
-                }}
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.7, repeat: Infinity }}
-              />
-            </div>
-          </div>
-        )}
-
+        {/* Message history */}
         {messages.map((msg, idx) => (
-          <div key={idx}>
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+          >
             {msg.role === "user" ? (
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <div
                   style={{
-                    background: "#1c1e2a",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "20px 20px 5px 20px",
-                    padding: "10px 16px",
-                    color: "#fff",
+                    background: "rgba(50,100,255,0.18)",
+                    border: "1px solid rgba(80,140,255,0.22)",
+                    borderRadius: "18px 18px 4px 18px",
+                    padding: "9px 14px",
+                    color: "rgba(255,255,255,0.92)",
                     fontSize: 13.5,
-                    maxWidth: "82%",
-                    lineHeight: 1.5,
+                    maxWidth: "80%",
+                    lineHeight: 1.55,
                   }}
                 >
                   {msg.text}
                 </div>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                  <GlowingOrb state="done" size={44} />
-                </div>
-                {msg.tools && (
-                  <FrostPill
-                    style={{
-                      padding: "5px 12px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    {["#a855f7", "#6e7681", "#22d3ee"].map((c) => (
-                      <div
-                        key={c}
-                        style={{ width: 6, height: 6, borderRadius: "50%", background: c }}
-                      />
-                    ))}
-                    <span style={{ color: "rgba(255,255,255,0.42)", fontSize: 11 }}>
-                      {msg.tools.join(" · ")}
-                    </span>
-                  </FrostPill>
-                )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {msg.tools && msg.tools.length > 0 && <ToolBadge tools={msg.tools} />}
                 <div
                   style={{
                     alignSelf: "flex-start",
-                    background: "rgba(30,35,55,0.7)",
-                    border: "1px solid rgba(100,160,255,0.15)",
-                    borderRadius: "5px 20px 20px 20px",
-                    padding: "10px 16px",
-                    color: "#fff",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.09)",
+                    borderRadius: "4px 18px 18px 18px",
+                    padding: "10px 14px",
+                    color: "rgba(255,255,255,0.85)",
                     fontSize: 13.5,
-                    lineHeight: 1.7,
-                    letterSpacing: "0.01em",
                     maxWidth: "88%",
+                    lineHeight: 1.65,
+                    letterSpacing: "0.01em",
                   }}
                 >
                   {renderText(msg.text)}
                 </div>
-                <div style={{ display: "flex", gap: 7 }}>
-                  <FrostPill style={{ padding: "6px 12px", display: "flex", alignItems: "center", gap: 5 }}>
-                    <ThumbsUp size={12} style={{ color: "rgba(255,255,255,0.6)" }} />
-                    <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>Helpful</span>
-                  </FrostPill>
-                  <FrostPill
-                    onClick={() => handleCopy(msg.text)}
-                    style={{ padding: "6px 12px", display: "flex", alignItems: "center", gap: 5 }}
-                  >
-                    {copied ? (
-                      <Check size={12} style={{ color: "#22d3ee" }} />
-                    ) : (
-                      <Copy size={12} style={{ color: "rgba(255,255,255,0.6)" }} />
-                    )}
-                    <span style={{ color: copied ? "#22d3ee" : "rgba(255,255,255,0.6)", fontSize: 12 }}>
-                      {copied ? "Copied!" : "Copy"}
-                    </span>
-                  </FrostPill>
-                </div>
+                {/* Copy button */}
+                <button
+                  onClick={() => handleCopy(msg.text, idx)}
+                  style={{
+                    alignSelf: "flex-start",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "rgba(255,255,255,0.28)",
+                    fontSize: 11,
+                    fontFamily: "inherit",
+                    padding: "2px 4px",
+                    borderRadius: 6,
+                    transition: "color 0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.color =
+                      copied === idx ? "#22d3ee" : "rgba(255,255,255,0.28)")
+                  }
+                >
+                  {copied === idx ? (
+                    <Check size={11} style={{ color: "#22d3ee" }} />
+                  ) : (
+                    <Copy size={11} />
+                  )}
+                  <span style={{ color: copied === idx ? "#22d3ee" : "inherit" }}>
+                    {copied === idx ? "Copied!" : "Copy"}
+                  </span>
+                </button>
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
 
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input bar */}
-      <div style={{ padding: "8px 14px 0px", zIndex: 1, flexShrink: 0 }}>
+        {/* Thinking / streaming indicator */}
         <AnimatePresence>
           {isBusy && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                marginBottom: 8,
-              }}
+              exit={{ opacity: 0 }}
+              style={{ display: "flex", flexDirection: "column", gap: 6 }}
             >
-              <motion.div
-                style={{ width: 5, height: 5, borderRadius: "50%", background: "#a855f7" }}
-                animate={{ opacity: [1, 0.2, 1] }}
-                transition={{ duration: 0.9, repeat: Infinity }}
-              />
-              <span style={{ color: "rgba(255,255,255,0.38)", fontSize: 11.5, fontWeight: 500 }}>
-                {orbState === "thinking"
-                  ? "Thinking…"
-                  : orbState === "searching"
-                    ? "Searching sources…"
-                    : "Generating answer…"}
-              </span>
+              {streamingText ? (
+                <div>
+                  <div
+                    style={{
+                      alignSelf: "flex-start",
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.09)",
+                      borderRadius: "4px 18px 18px 18px",
+                      padding: "10px 14px",
+                      color: "rgba(255,255,255,0.85)",
+                      fontSize: 13.5,
+                      maxWidth: "88%",
+                      lineHeight: 1.65,
+                      display: "inline-block",
+                    }}
+                  >
+                    {renderText(streamingText)}
+                    <motion.span
+                      style={{
+                        display: "inline-block",
+                        width: 2,
+                        height: "0.9em",
+                        background: "rgba(80,160,255,0.85)",
+                        borderRadius: 1,
+                        marginLeft: 2,
+                        verticalAlign: "text-bottom",
+                      }}
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 0.65, repeat: Infinity }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.09)",
+                    borderRadius: "4px 18px 18px 18px",
+                    display: "inline-flex",
+                  }}
+                >
+                  <TypingDots />
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
+        <div ref={bottomRef} />
+      </div>
+
+      {/* ── Input ── */}
+      <div
+        style={{
+          padding: "10px 12px 14px",
+          flexShrink: 0,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: "11px 14px",
-            background: isBusy ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)",
-            border: isBusy
-              ? "1px solid rgba(255,255,255,0.07)"
-              : charOverLimit
-                ? "1px solid rgba(255,80,80,0.5)"
-                : "1px solid rgba(255,255,255,0.14)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            borderRadius: 999,
-            transition: "background 0.3s, border-color 0.3s, opacity 0.3s",
-            opacity: isBusy ? 0.55 : 1,
-            cursor: isBusy ? "not-allowed" : "text",
-            filter: isBusy ? "grayscale(0.3)" : "none",
+            gap: 8,
+            background: "rgba(255,255,255,0.06)",
+            border: charOverLimit
+              ? "1px solid rgba(255,80,80,0.5)"
+              : "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 16,
+            padding: "10px 10px 10px 16px",
+            transition: "border-color 0.2s",
           }}
         >
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => !isBusy && setInput(e.target.value.slice(0, MAX_CHARS + 10))}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={
-              isBusy
-                ? orbState === "streaming"
-                  ? "Generating…"
-                  : orbState === "searching"
-                    ? "Fetching sources…"
-                    : "Thinking…"
-                : "Ask anything…"
-            }
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+            placeholder={isBusy ? "Waiting for response…" : "Ask anything…"}
             disabled={isBusy}
             style={{
               flex: 1,
               background: "transparent",
               border: "none",
               outline: "none",
-              color: isBusy ? "rgba(255,255,255,0.35)" : "#fff",
-              fontSize: 14,
+              color: isBusy ? "rgba(255,255,255,0.3)" : "#fff",
+              fontSize: 13.5,
               fontFamily: "inherit",
               cursor: isBusy ? "not-allowed" : "text",
             }}
           />
 
-          {!isBusy && charCount > 0 && (
+          {!isBusy && charCount > MAX_CHARS * 0.75 && (
             <span
               style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: charOverLimit ? "#f87171" : charNearLimit ? "#fbbf24" : "rgba(255,255,255,0.3)",
-                transition: "color 0.2s",
+                fontSize: 10.5,
+                color: charOverLimit ? "#f87171" : "rgba(255,255,255,0.3)",
                 flexShrink: 0,
-                minWidth: 30,
-                textAlign: "right",
               }}
             >
               {charOverLimit ? `-${charCount - MAX_CHARS}` : MAX_CHARS - charCount}
@@ -924,26 +646,27 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
           <motion.button
             onClick={() => handleSend()}
             disabled={isBusy || charOverLimit || charCount === 0}
-            whileHover={!isBusy && charCount > 0 && !charOverLimit ? { scale: 1.1 } : {}}
-            whileTap={!isBusy && charCount > 0 && !charOverLimit ? { scale: 0.93 } : {}}
+            whileHover={!isBusy && charCount > 0 && !charOverLimit ? { scale: 1.08 } : {}}
+            whileTap={!isBusy && charCount > 0 && !charOverLimit ? { scale: 0.92 } : {}}
             style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
               background:
                 isBusy || charCount === 0 || charOverLimit
                   ? "rgba(255,255,255,0.06)"
-                  : "rgba(80,140,255,0.28)",
-              border:
-                isBusy || charCount === 0 || charOverLimit
-                  ? "1px solid rgba(255,255,255,0.1)"
-                  : "1px solid rgba(80,140,255,0.45)",
-              borderRadius: "50%",
-              width: 34,
-              height: 34,
+                  : "rgba(50,110,255,0.75)",
+              border: "none",
               cursor: isBusy || charCount === 0 || charOverLimit ? "not-allowed" : "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              transition: "background 0.25s, border-color 0.25s",
+              transition: "background 0.2s",
+              boxShadow:
+                !isBusy && charCount > 0 && !charOverLimit
+                  ? "0 0 14px 2px rgba(50,110,255,0.4)"
+                  : "none",
             }}
             aria-label="Send message"
           >
@@ -957,27 +680,26 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
                   borderTopColor: "rgba(255,255,255,0.5)",
                 }}
                 animate={{ rotate: 360 }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
               />
             ) : (
               <Send
                 size={14}
                 style={{
-                  color: charCount === 0 || charOverLimit ? "rgba(255,255,255,0.25)" : "#7db5ff",
-                  transition: "color 0.2s",
+                  color: charCount === 0 || charOverLimit ? "rgba(255,255,255,0.2)" : "#fff",
                   marginLeft: 1,
+                  transition: "color 0.2s",
                 }}
               />
             )}
           </motion.button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 // ─── Floating Button ──────────────────────────────────────────────────────────
-
 export default function PortfolioChatWidget() {
   const [open, setOpen] = useState(false);
 
@@ -986,16 +708,16 @@ export default function PortfolioChatWidget() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.94 }}
+            key="panel"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.94 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 340, damping: 30 }}
             style={{
               position: "fixed",
-              bottom: 78,
+              bottom: 82,
               right: 24,
               zIndex: 9999,
-              filter: "drop-shadow(0 0 40px rgba(30,100,255,0.22))",
             }}
           >
             <ChatPanel onClose={() => setOpen(false)} />
@@ -1003,35 +725,39 @@ export default function PortfolioChatWidget() {
         )}
       </AnimatePresence>
 
+      {/* Toggle button */}
       <motion.button
         onClick={() => setOpen((o) => !o)}
-        whileHover={{ scale: 1.06 }}
-        whileTap={{ scale: 0.94 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.93 }}
         style={{
           position: "fixed",
           bottom: 24,
           right: 24,
-          width: "auto",
-          height: 44,
+          height: 46,
           borderRadius: 999,
-          background: open ? "#0d1224" : "#e8362a",
+          background: open
+            ? "rgba(10,14,28,0.95)"
+            : "linear-gradient(135deg, #1a56ff 0%, #0a2acc 100%)",
           boxShadow: open
-            ? "0 0 0 1.5px rgba(232,54,42,0.6), 0 8px 32px rgba(0,0,0,0.5)"
-            : "0 0 24px 6px rgba(232,54,42,0.35), 0 8px 24px rgba(0,0,0,0.4)",
-          border: open ? "1.5px solid rgba(232,54,42,0.5)" : "1.5px solid rgba(255,100,88,0.4)",
+            ? "0 0 0 1.5px rgba(80,140,255,0.4), 0 8px 24px rgba(0,0,0,0.5)"
+            : "0 0 24px 6px rgba(30,80,255,0.35), 0 8px 24px rgba(0,0,0,0.45)",
+          border: open
+            ? "1px solid rgba(80,140,255,0.3)"
+            : "1px solid rgba(100,160,255,0.3)",
           cursor: "pointer",
           zIndex: 9999,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          padding: "0 18px",
-          fontFamily: "'Inter', sans-serif",
-          transition: "background 0.25s, box-shadow 0.25s",
+          padding: "0 20px",
+          fontFamily: "'Inter', system-ui, sans-serif",
           overflow: "hidden",
         }}
-        aria-label="Open Portfolio Agent chat"
+        aria-label="Open Portfolio Agent"
       >
+        {/* Shimmer on closed state */}
         {!open && (
           <motion.div
             style={{
@@ -1039,13 +765,13 @@ export default function PortfolioChatWidget() {
               top: 0,
               bottom: 0,
               left: "-60%",
-              width: "40%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
-              borderRadius: 999,
+              width: "35%",
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
               pointerEvents: "none",
             }}
-            animate={{ left: ["−60%", "160%"] }}
-            transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
+            animate={{ left: ["-60%", "160%"] }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
           />
         )}
 
@@ -1053,50 +779,55 @@ export default function PortfolioChatWidget() {
           {open ? (
             <motion.div
               key="close"
-              initial={{ opacity: 0, rotate: -80, scale: 0.7 }}
-              animate={{ opacity: 1, rotate: 0, scale: 1 }}
-              exit={{ opacity: 0, rotate: 80, scale: 0.7 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, scale: 0.75 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.75 }}
+              transition={{ duration: 0.18 }}
               style={{ display: "flex", alignItems: "center", gap: 7 }}
             >
-              <X size={15} style={{ color: "#e8362a" }} />
-              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12.5, fontWeight: 500, letterSpacing: "0.03em" }}>
+              <X size={14} style={{ color: "rgba(255,255,255,0.55)" }} />
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.65)",
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  letterSpacing: "0.02em",
+                }}
+              >
                 Close
               </span>
             </motion.div>
           ) : (
             <motion.div
               key="open"
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.18 }}
               style={{ display: "flex", alignItems: "center", gap: 8 }}
             >
-              <div style={{ position: "relative", width: 18, height: 18, flexShrink: 0 }}>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: "50%",
-                    background:
-                      "radial-gradient(ellipse at 35% 30%, rgba(160,210,255,0.9) 0%, rgba(40,100,220,0.85) 50%, rgba(8,20,100,0.95) 100%)",
-                    border: "1px solid rgba(120,190,255,0.4)",
-                  }}
-                />
-                <motion.div
-                  style={{ position: "absolute", inset: "4%", borderRadius: "50%", boxShadow: "inset 0 0 0 1px rgba(0,220,255,0.7)" }}
-                  animate={{ transform: ["rotateX(60deg) rotateZ(0deg)", "rotateX(60deg) rotateZ(360deg)"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                />
-              </div>
-              <span style={{ color: "#fff", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
+              <Sparkles size={14} style={{ color: "rgba(255,255,255,0.9)" }} />
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 Ask my Agent
               </span>
               <motion.div
-                style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.6)", flexShrink: 0 }}
-                animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "rgba(150,220,255,0.9)",
+                  flexShrink: 0,
+                }}
+                animate={{ opacity: [1, 0.3, 1], scale: [1, 0.75, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
           )}
