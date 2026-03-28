@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import PortfolioChatWidget from "@/components/agent/PortfolioChatWidget";
+import KeepAlive from "@/components/KeepAlive";
 
 const syne = Syne({
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <PortfolioChatWidget />
+        <KeepAlive />
       </body>
     </html>
   );

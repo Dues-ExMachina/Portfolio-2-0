@@ -14,6 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    """Endpoint for the frontend to ping and keep the server awake."""
+    return {"status": "ok", "message": "Backend is awake"}
+
 # This must NOT have a prefix if your Next.js is hitting "${backendUrl}/generate"
 app.include_router(generate_router)
 app.include_router(chat_router)
