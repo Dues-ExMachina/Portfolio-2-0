@@ -7,13 +7,14 @@ import os
 load_dotenv()
 
 # Override from the environment if Groq retires a model: https://console.groq.com/docs/models
-GROQ_MODEL = os.getenv("GROQ_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
-GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")              # chat answers
+GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.8-27b")   # reads Neural Canvas sketches
+GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "openai/gpt-oss-20b")
 
-def get_llm():
+def get_llm(model: str = GROQ_MODEL):
 
     llm = ChatGroq(
-        model=GROQ_MODEL,
+        model=model,
         timeout=60,  # 60 second timeout to prevent hanging
     )
     return llm
@@ -22,7 +23,7 @@ def get_llm():
 def generate_image_prompt(base64_image: str) -> str:
     
     try:
-        llm = get_llm()
+        llm = get_llm(GROQ_VISION_MODEL)
 
         # message = HumanMessage(
         # content=[

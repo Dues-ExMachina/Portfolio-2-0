@@ -75,7 +75,7 @@ def index_profile():
     profile_path = os.path.normpath(profile_path)
 
     try:
-        with open(profile_path, "r") as f:
+        with open(profile_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         print(f"Error: profile.json not found at {profile_path}")

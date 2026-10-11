@@ -161,7 +161,7 @@ def profile_tool() -> dict:
     """
     profile_path = os.path.join(os.path.dirname(__file__), "..", "profile.json")
     try:
-        with open(profile_path, "r") as f:
+        with open(profile_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         return {"error": "profile.json not found"}

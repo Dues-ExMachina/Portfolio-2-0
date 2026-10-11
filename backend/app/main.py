@@ -14,6 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    """Friendly response for uptime monitors / bots hitting the bare URL."""
+    return {"service": "Anubhab Das portfolio agent", "endpoints": ["/health", "/chat", "/generate"]}
+
 @app.get("/health")
 def health_check():
     """Endpoint for the frontend to ping and keep the server awake."""
