@@ -6,7 +6,7 @@ A FastAPI backend powering an AI portfolio agent with LangGraph orchestration, P
 
 - **FastAPI** — API server
 - **LangGraph** — agent orchestration (intent → route → tools → answer)
-- **Groq (Llama 4)** — LLM for answer generation
+- **Groq (gpt-oss-120b; Qwen3 for vision)** — LLM for answer generation
 - **Pinecone** — vector store for semantic retrieval
 - **GitHub REST API** — live repo data
 - **SSE (Server-Sent Events)** — token-by-token streaming to frontend

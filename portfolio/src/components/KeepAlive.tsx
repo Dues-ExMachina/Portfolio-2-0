@@ -11,7 +11,8 @@ declare global {
   }
 }
 
-function setStatus(status: BackendStatus) {
+export function setBackendStatus(status: BackendStatus) {
+  if (typeof window === "undefined" || window.__backendStatus === status) return;
   window.__backendStatus = status;
   window.dispatchEvent(new CustomEvent<BackendStatus>("backend-status", { detail: status }));
 }
@@ -33,14 +34,14 @@ export default function KeepAlive() {
       if (attempt === 0) {
         if (Date.now() - lastPing < 60000) return; // throttle tab-switch pings
         lastPing = Date.now();
-        if (window.__backendStatus !== "online") setStatus("waking");
+        if (window.__backendStatus !== "online") setBackendStatus("waking");
       }
       try {
         // A cold start on Render takes ~30-60s, so allow a long timeout
         const res = await fetch(`${backendUrl}/health`, { cache: "no-store", signal: AbortSignal.timeout(70000) });
         if (cancelled) return;
         if (res.ok) {
-          setStatus("online");
+          setBackendStatus("online");
           return;
         }
         throw new Error(`status ${res.status}`);
@@ -50,7 +51,9 @@ export default function KeepAlive() {
         if (attempt < 6) {
           retryTimer = setTimeout(() => ping(attempt + 1), 10000);
         } else {
-          setStatus("offline");
+          setBackendStatus("offline");
+          // Don't give up: keep checking every minute in case it's just a slow cold start
+          retryTimer = setTimeout(() => ping(1), 60000);
         }
       }
     };

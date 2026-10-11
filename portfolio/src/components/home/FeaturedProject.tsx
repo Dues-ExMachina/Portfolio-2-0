@@ -12,11 +12,11 @@ const SOURCE_URL = "https://github.com/Dues-ExMachina/Portfolio-2-0";
 
 const PIPELINE = [
     { step: "01", title: "Sketch", desc: "You draw on the canvas" },
-    { step: "02", title: "Vision LLM", desc: "Llama 4 Scout (Groq) reads the sketch and writes a prompt" },
-    { step: "03", title: "Diffusion", desc: "SDXL on Hugging Face renders the artwork" },
+    { step: "02", title: "Vision LLM", desc: "Qwen3 vision model (on Groq) reads the sketch and writes a prompt" },
+    { step: "03", title: "Diffusion", desc: "FLUX.1 [schnell] on Hugging Face renders the artwork" },
 ];
 
-const LOADING_STAGES = ["Reading your sketch…", "Writing an art prompt…", "Painting with SDXL…", "Almost there…"];
+const LOADING_STAGES = ["Reading your sketch…", "Writing an art prompt…", "Painting with FLUX…", "Almost there…"];
 
 export default function FeaturedProject() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -536,7 +536,7 @@ export default function FeaturedProject() {
                             </ol>
 
                             <div className="flex gap-2 flex-wrap mb-8">
-                                {["Llama 4 Vision", "Groq", "SDXL", "Hugging Face", "FastAPI", "Next.js"].map((tag) => (
+                                {["Qwen3 Vision", "Groq", "FLUX.1", "Hugging Face", "FastAPI", "Next.js"].map((tag) => (
                                     <span
                                         key={tag}
                                         className="px-3 py-1 text-[10px] border border-navy-border text-text-muted rounded-full"

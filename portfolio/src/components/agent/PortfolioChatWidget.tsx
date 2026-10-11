@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Copy, Check, Sparkles, RotateCcw, ChevronDown } from "lucide-react";
-import type { BackendStatus } from "@/components/KeepAlive";
+import { setBackendStatus, type BackendStatus } from "@/components/KeepAlive";
 
 // ─── Theme (matches globals.css tokens) ──────────────────────────────────────
 
@@ -361,6 +361,7 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
         setMessages((prev) => [...prev, { role: "assistant", text: fullText, tools }]);
         setStreamingText("");
         setOrbState("idle");
+        setBackendStatus("online"); // a real answer proves the server is up
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error(err);
