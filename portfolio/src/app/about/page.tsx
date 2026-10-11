@@ -12,53 +12,51 @@ import {
 const skills = [
     { icon: Brain, title: "LLM Engineering", desc: "Fine-tuning, RLHF, instruction tuning, and productionizing large language models at scale." },
     { icon: Database, title: "RAG Systems", desc: "End-to-end retrieval-augmented generation pipelines with vector databases and semantic search." },
-    { icon: Palette, title: "Agentic AI", desc: "Building agentic syatems with Langgraph, automating tasks" },
+    { icon: Palette, title: "Agentic AI", desc: "Building agentic systems with LangGraph, Temporal and MCP — multi-step workflows with self-critique and evaluation loops." },
     { icon: MessageSquare, title: "Prompt Architecture", desc: "Systematic prompt engineering, chain-of-thought, and few-shot learning strategies." },
     { icon: Container, title: "MLOps & Deployment", desc: "Model serving, monitoring, and CI/CD pipelines for ML systems using Docker and Kubernetes." },
     { icon: Sparkles, title: "Creative AI", desc: "Building AI-powered creative tools that merge art and technology in unexpected ways." },
 ];
 
-// remove this when adding expiriance
 interface Experience {
     role: string;
     company: string;
+    url?: string;
+    image?: string;
+    location: string;
     years: string;
     desc: string;
-    side: "left" | "right";
+    highlights: string[];
+    stack: string[];
 }
-// remove this when adding expiriance
-const experiences: Experience[] = [];
 
-    // const experiences = [
-    // {
-    //     role: "Senior AI Engineer",
-    //     company: "TechVentures AI",
-    //     years: "2024 — Present",
-    //     desc: "Leading the development of production-grade RAG systems and LLM orchestration pipelines serving millions of users.",
-    //     side: "right",
-    // },
-    // {
-    //     role: "ML Engineer",
-    //     company: "Startup Innovations",
-    //     years: "2022 — 2024",
-    //     desc: "Built end-to-end ML pipelines, deployed diffusion models, and developed agentic systems for enterprise clients.",
-    //     side: "left",
-    // },
-    // {
-    //     role: "AI Research Intern",
-    //     company: "Research Lab",
-    //     years: "2021 — 2022",
-    //     desc: "Conducted research on transformer architectures and contributed to published papers on efficient LLM inference.",
-    //     side: "right",
-    // },
-// ];
+const experiences: Experience[] = [
+    {
+        role: "Software Developer (Intern)",
+        company: "AIVOA.ai",
+        url: "https://aivoa.ai/",
+        image: "/work.png",
+        location: "Bangalore, India · Remote",
+        years: "April 2026 — Present",
+        desc: "Building an agentic, AI-powered eQMS (electronic Quality Management System) for pharmaceutical / GxP clients, where output accuracy, traceability and regulatory compliance are core requirements.",
+        highlights: [
+            "Developed a 5-stage Temporal workflow orchestrating LLM-powered investigation analysis for the Non-Conformance module, with an iterative self-critique loop that scores each response against a 10-point quality rubric.",
+            "Built an autonomous documentation agent (Browser Use, Playwright, LangGraph) that crawls the platform and structures content into a navigation knowledge base feeding a Pinecone-backed RAG pipeline.",
+            "Designed a context-isolated session architecture for the AI chat assistant, enabling multi-record conversational workflows across QMS record types.",
+            "Built a Python calculation engine for cleaning-validation limits (Maximum Allowable Carryover) — HBEL/PDE, dose-based, 10ppm and LD50/NOEL methods per FDA/EMA/PIC/S/WHO — plus a worst-case-product ranking engine.",
+            "Built a recursive PostgreSQL CTE-based traceability graph with React Flow/Dagre visualization and role-based access control, replacing a slower Python-level traversal.",
+            "Architected a 9-stage Supplier Corrective Action Request (SCAR) workflow end-to-end, including seed datasets and a Jinja2/WeasyPrint HTML-to-PDF report pipeline.",
+        ],
+        stack: ["LangGraph", "Temporal", "Pinecone", "FastAPI", "PostgreSQL", "React Flow", "Playwright", "Browser Use"],
+    },
+];
 
 const education = [
     {
-        subject: "Computer Scirnce and Engineering",
+        subject: "Computer Science and Engineering",
         company: "Elitte College of Engineering",
         years: "2023 — 2026",
-        sgpa: "7",
+        cgpa: "8",
         side: "right",
     }
 ];
@@ -153,13 +151,17 @@ export default function AboutPage() {
                                 <span className="text-gradient-coral">Das</span>
                             </h1>
                             <p className="text-text-muted text-base leading-relaxed mb-8">
-                                I&apos;m a Generative AI Engineer obsessed with building intelligent systems that push
-                                the boundary between research and production. From fine-tuning LLMs to architecting
-                                complex RAG pipelines and exploring diffusion models — I turn cutting-edge AI into
-                                products that actually ship.
+                                I&apos;m a Generative AI Engineer who builds and ships LLM-powered systems in production.
+                                Currently a Software Developer at{" "}
+                                <a href="https://aivoa.ai/" target="_blank" rel="noopener noreferrer" className="text-coral hover:underline">
+                                    AIVOA.ai
+                                </a>
+                                , building an agentic eQMS platform for pharmaceutical / GxP clients — where accuracy,
+                                traceability and regulatory compliance aren&apos;t optional. I work across agentic
+                                pipelines, RAG, workflow orchestration and the full-stack product around them.
                             </p>
                             <ul className="space-y-3">
-                                {["LLM Engineering & Fine-tuning", "RAG Systems & Vector Search", "Diffusion Models & Image Gen", "AI Agents & Orchestration", "MLOps & Model Deployment"].map((item) => (
+                                {["Agentic AI with LangGraph & MCP", "RAG Systems & Vector Search (Pinecone)", "LLM Evaluation & Self-Critique Loops", "Workflow Orchestration with Temporal", "FastAPI, PostgreSQL & React"].map((item) => (
                                     <li key={item} className="flex items-center gap-3 text-text-muted text-sm">
                                         <div className="w-1.5 h-1.5 rounded-full bg-coral shrink-0" />
                                         {item}
@@ -228,18 +230,35 @@ export default function AboutPage() {
                             Career Journey
                         </h2>
                     </AnimatedSection>
-                    <div className="relative">
+                    <div className="relative pl-6 md:pl-10">
                         {/* Vertical line */}
-                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-navy-border -translate-x-1/2" />
+                        <div className="absolute left-0 top-0 bottom-0 w-px bg-navy-border" />
                         <div className="space-y-12">
                             {experiences.map((exp, idx) => (
-                                <AnimatedSection key={exp.role} delay={idx * 0.15}>
-                                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 relative ${exp.side === "left" ? "md:text-right" : ""}`}>
+                                <AnimatedSection key={`${exp.company}-${exp.role}`} delay={idx * 0.15}>
+                                    <div className="relative">
                                         {/* Coral dot */}
-                                        <div className="absolute left-1/2 top-6 w-3 h-3 rounded-full bg-coral border-2 border-navy -translate-x-1/2 z-10 hidden md:block" />
+                                        <div className="absolute -left-6 md:-left-10 top-7 w-3 h-3 rounded-full bg-coral border-2 border-navy -translate-x-1/2 z-10" />
 
-                                        {exp.side === "right" ? (
-                                            <>
+                                        <div className="bg-navy-card border border-navy-border rounded-sm p-6 md:p-8 hover:border-coral/40 transition-colors duration-500">
+                                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
+                                                <div>
+                                                    <h3
+                                                        className="text-text-primary font-bold text-xl md:text-2xl"
+                                                        style={{ fontFamily: "'Clash Display', sans-serif" }}
+                                                    >
+                                                        {exp.role}
+                                                    </h3>
+                                                    <p className="text-coral text-sm mt-1" style={{ fontFamily: "var(--font-space-mono)" }}>
+                                                        {exp.url ? (
+                                                            <a href={exp.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                                                {exp.company} ↗
+                                                            </a>
+                                                        ) : (
+                                                            exp.company
+                                                        )}
+                                                    </p>
+                                                </div>
                                                 <div className="md:text-right">
                                                     <span
                                                         className="text-text-label text-[11px] uppercase tracking-widest"
@@ -247,44 +266,50 @@ export default function AboutPage() {
                                                     >
                                                         {exp.years}
                                                     </span>
-                                                    <p className="text-coral text-sm mt-1" style={{ fontFamily: "var(--font-space-mono)" }}>
-                                                        {exp.company}
+                                                    <p className="text-text-label text-[11px] mt-1" style={{ fontFamily: "var(--font-space-mono)" }}>
+                                                        {exp.location}
                                                     </p>
                                                 </div>
-                                                <div className="bg-navy-card border border-navy-border rounded-sm p-5">
-                                                    <h3
-                                                        className="text-text-primary font-bold text-xl mb-2"
-                                                        style={{ fontFamily: "'Clash Display', sans-serif" }}
-                                                    >
-                                                        {exp.role}
-                                                    </h3>
-                                                    <p className="text-text-muted text-sm leading-relaxed">{exp.desc}</p>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="bg-navy-card border border-navy-border rounded-sm p-5">
-                                                    <h3
-                                                        className="text-text-primary font-bold text-xl mb-2"
-                                                        style={{ fontFamily: "'Clash Display', sans-serif" }}
-                                                    >
-                                                        {exp.role}
-                                                    </h3>
-                                                    <p className="text-text-muted text-sm leading-relaxed">{exp.desc}</p>
-                                                </div>
-                                                <div>
+                                            </div>
+
+                                            <p className="text-text-muted text-sm leading-relaxed mb-5">{exp.desc}</p>
+
+                                            {exp.image && (
+                                                <a
+                                                    href={exp.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="group block relative overflow-hidden rounded-sm border border-navy-border mb-6"
+                                                >
+                                                    <img
+                                                        src={exp.image}
+                                                        alt={`${exp.company} product screenshot`}
+                                                        className="w-full h-auto transition-transform duration-500 group-hover:scale-[1.02]"
+                                                    />
+                                                </a>
+                                            )}
+
+                                            <ul className="space-y-3 mb-6">
+                                                {exp.highlights.map((point) => (
+                                                    <li key={point} className="flex items-start gap-3 text-sm text-text-muted leading-relaxed">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-coral mt-2 shrink-0" />
+                                                        {point}
+                                                    </li>
+                                                ))}
+                                            </ul>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                {exp.stack.map((tech) => (
                                                     <span
-                                                        className="text-text-label text-[11px] uppercase tracking-widest"
+                                                        key={tech}
+                                                        className="px-2.5 py-1 border border-navy-border text-text-label text-[10px] uppercase tracking-widest rounded-sm"
                                                         style={{ fontFamily: "var(--font-space-mono)" }}
                                                     >
-                                                        {exp.years}
+                                                        {tech}
                                                     </span>
-                                                    <p className="text-coral text-sm mt-1" style={{ fontFamily: "var(--font-space-mono)" }}>
-                                                        {exp.company}
-                                                    </p>
-                                                </div>
-                                            </>
-                                        )}
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 </AnimatedSection>
                             ))}
@@ -326,10 +351,10 @@ export default function AboutPage() {
                                     B.Tech in Computer Science
                                 </h3>
                                 <p className="text-coral text-sm mb-1" style={{ fontFamily: "var(--font-space-mono)" }}>
-                                    Elitte College of engineering
+                                    Elitte College of Engineering
                                 </p>
                                 <p className="text-text-label text-xs" style={{ fontFamily: "var(--font-space-mono)" }}>
-                                    2023 — 2026 
+                                    2023 — 2026 · CGPA {education[0].cgpa} / 10
                                 </p>
                             </div>
                         </AnimatedSection>

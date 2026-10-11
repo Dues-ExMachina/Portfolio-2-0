@@ -1,7 +1,6 @@
 {
   "name": "Anubhab Das",
-  "bio": "Motivated Computer Science undergraduate with strong fundamentals in programming, Generative AI development, and problem-solving. Seeking an entry-level software engineering or internship role to apply technical skills, gain industry experience, and contribute to real-world projects.",
-
+  "bio": "Final-year B.Tech Computer Science graduate and AI Engineer with hands-on experience building and deploying Generative AI applications in production. Builds LLM-powered chatbots, assistants and agentic pipelines with LangChain/LangGraph, with practical work in Retrieval-Augmented Generation (RAG), prompt engineering, LLM response evaluation, and integrating AI into enterprise applications through APIs. Currently a Software Developer (Intern) at AIVOA.ai (https://aivoa.ai/), building an AI-powered, agentic eQMS (electronic Quality Management System) platform for pharmaceutical/GxP clients, where output accuracy, traceability and regulatory compliance are core requirements.",
   "skills": [
     "Python",
     "FastAPI",
@@ -32,12 +31,30 @@
     "OOP",
     "REST APIs",
     "Streaming (SSE)",
-    "Prompt Engineering"
+    "Prompt Engineering",
+    "SQL",
+    "JavaScript",
+    "Agentic AI",
+    "LLM Response Evaluation",
+    "Query Expansion",
+    "Cross-Encoder Reranking",
+    "PostgreSQL",
+    "SQLAlchemy",
+    "Temporal (Workflow Orchestration)",
+    "Redux / RTK Query",
+    "React Flow",
+    "Playwright",
+    "Browser Use",
+    "Jinja2 / WeasyPrint"
   ],
-
-  "education": "B.Tech in Computer Science from Elitte College of Engineering (MAKAUT), 2023–2026, CGPA: 7.0",
-
+  "education": "B.Tech in Computer Science from Elitte College of Engineering (MAKAUT), Kolkata, 2023–2026, CGPA: 8 / 10",
   "experience": [
+    {
+      "role": "Software Developer (Intern)",
+      "company": "AIVOA.ai — Life Sciences AI Startup (https://aivoa.ai/)",
+      "period": "April 2026–Present, Bangalore, India (Remote)",
+      "description": "Building QMS.AIVOA.AI, an agentic AI-powered eQMS platform for pharmaceutical/GxP clients. Developed a 5-stage Temporal workflow orchestrating LLM-powered investigation analysis for the Non-Conformance module, with an iterative self-critique loop that evaluates each response against a 10-point quality rubric. Built an autonomous documentation agent (Browser Use, Playwright, LangGraph) that crawls the platform to collect and structure content into a navigation knowledge base feeding a Pinecone-backed RAG pipeline. Designed a context-isolated session architecture for an AI chat assistant, enabling multi-record conversational workflows across QMS record types. Built a Python calculation engine for pharmaceutical cleaning-validation limits (Maximum Allowable Carryover), implementing HBEL/PDE, dose-based, 10ppm, and LD50/NOEL methods to comply with FDA/EMA/PIC/S/WHO standards, plus a worst-case-product ranking engine. Built a recursive PostgreSQL CTE-based traceability graph with React Flow/Dagre visualization and role-based access control, replacing a slower Python-level graph traversal. Architected and implemented a 9-stage Supplier Corrective Action Request (SCAR) workflow end-to-end, including seed datasets and a Jinja2/WeasyPrint HTML-to-PDF report generation pipeline."
+    },
     {
       "role": "Freelance AI Developer",
       "company": "Self-employed",
@@ -45,39 +62,90 @@
       "description": "Built and deployed multiple Generative AI applications including RAG pipelines, LLM-powered agents, and AI-integrated portfolio tools."
     }
   ],
-
   "certifications": [
     "Generative AI with LangChain — Udemy",
     "Python for Data Science — Coursera"
   ],
-
   "projects": [
+    {
+      "name": "Y Cloude — AI Workspace Platform",
+      "description": "Live, deployed Generative AI workspace with real-time chat, AI assistants, and analytics; RAG pipelines retrieve context from documents and URLs using Pinecone and LangGraph.",
+      "tech_stack": [
+        "Python",
+        "FastAPI",
+        "LangGraph",
+        "Pinecone",
+        "React"
+      ],
+      "url": "https://ycloude.com"
+    },
+    {
+      "name": "CuraLink — Medical Research Assistant",
+      "description": "LLM-powered research assistant using query expansion and cross-encoder reranking to improve retrieval accuracy.",
+      "tech_stack": [
+        "Python",
+        "LLMs",
+        "RAG",
+        "Cross-Encoder Reranking"
+      ],
+      "url": "https://github.com/Dues-ExMachina"
+    },
+    {
+      "name": "RAG Chatbot",
+      "description": "Context-aware chatbot built with LangChain and Pinecone for accurate, grounded retrieval of stored user data.",
+      "tech_stack": [
+        "Python",
+        "LangChain",
+        "Pinecone"
+      ],
+      "url": "https://github.com/Dues-ExMachina"
+    },
     {
       "name": "AI Workspace Pro (Final Year Project)",
       "description": "Developed a backend-driven AI workspace using Python and FastAPI. Designed REST APIs and integrated database functionality. Improved understanding of scalable backend architecture and debugging.",
-      "tech_stack": ["Python", "FastAPI"],
+      "tech_stack": [
+        "Python",
+        "FastAPI"
+      ],
       "url": "https://github.com/Dues-ExMachina/Ai-WorkSpace-Pro"
     },
     {
       "name": "Expense Tracker with MCP Agent",
       "description": "Built an agentic finance app using LangChain and Groq for natural language task execution. Implemented Model Context Protocol (MCP) to connect LLMs with modular external tools and servers. Orchestrated multi-step reasoning pipelines for automated tool execution and context-aware responses.",
-      "tech_stack": ["Python", "LangChain", "Groq", "MCP", "Streamlit"],
+      "tech_stack": [
+        "Python",
+        "LangChain",
+        "Groq",
+        "MCP",
+        "Streamlit"
+      ],
       "url": "https://ai-chatbot-mcp-cpwrf58ktxybtxpq8swjku.streamlit.app/"
     },
     {
       "name": "Portfolio AI Agent",
       "description": "A full-stack AI portfolio assistant that answers visitor questions using a LangGraph StateGraph agent, Pinecone semantic search, GitHub live data, and streaming SSE responses. Built with FastAPI backend and Next.js frontend.",
-      "tech_stack": ["Python", "FastAPI", "LangGraph", "Pinecone", "Next.js", "TypeScript", "Groq"],
+      "tech_stack": [
+        "Python",
+        "FastAPI",
+        "LangGraph",
+        "Pinecone",
+        "Next.js",
+        "TypeScript",
+        "Groq"
+      ],
       "url": "https://portfolio-1-0-ivory-phi.vercel.app"
     },
     {
       "name": "AI Blogger Agent",
       "description": "An AI agent that autonomously researches topics and generates structured blog posts using multi-step reasoning and tool use.",
-      "tech_stack": ["Python", "LangChain", "OpenAI"],
+      "tech_stack": [
+        "Python",
+        "LangChain",
+        "OpenAI"
+      ],
       "url": "https://github.com/Dues-ExMachina"
     }
   ],
-
   "contact": {
     "email": "anubhabd45@gmail.com",
     "linkedin": "https://linkedin.com/in/anubhab-das45/",

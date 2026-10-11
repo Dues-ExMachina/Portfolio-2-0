@@ -135,7 +135,7 @@ export default function HeroSection() {
                 >
                     <span className="w-12 h-px bg-navy-border" />
                     <span className="text-text-muted text-[14px]" style={{ fontFamily: "var(--font-syne)" }}>
-                        AI Research · LLM Systems · Creative Tech
+                        Agentic AI · RAG · LLM Systems · @ AIVOA.ai
                     </span>
                     <span className="w-12 h-px bg-navy-border" />
                 </motion.div>
