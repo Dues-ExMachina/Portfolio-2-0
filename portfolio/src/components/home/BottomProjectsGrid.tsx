@@ -5,33 +5,35 @@ import Link from "next/link";
 
 const bottomProjects = [
     {
-        title: "AI Chatbot MCP",
-        label: "AI Tools",
-        image: "/FinanaceManager.png",
-        link: "/projects",
+        title: "CuraLink",
+        label: "RAG · Medical Research",
+        desc: "AI medical research assistant — query expansion + cross-encoder reranking over PubMed, OpenAlex & ClinicalTrials.gov.",
+        image: "/curalink.png",
+        link: "https://cura-link-coral.vercel.app",
         color: "from-cyan/20 to-violet/20",
         accent: "#00C8FF",
-        tall: true,
+        tall: false,
     },
     {
-        title: "LangGraph Chatbot",
-        label: "AI Agents",
-        image: "/agentic-chatbot.png",
-        link: "/projects",
+        title: "AI-First HCP CRM",
+        label: "LangGraph Agent",
+        desc: "Natural-language CRM for pharma field reps — a LangGraph agent extracts entities and routes to 5 tools.",
+        image: "/hcp-crm.png",
+        link: "https://hcp-crm-gules.vercel.app",
         color: "from-violet/20 to-cyan/20",
         accent: "#8B5CF6",
         tall: false,
     },
     {
-        title: "AI Blogger Agent",
-        label: "AI Agents",
-        image: "/Ai-Blog.png",
-        link: "/projects",
+        title: "Portfolio AI Agent",
+        label: "LangGraph · MCP · RAG",
+        desc: "The \"Ask my Agent\" assistant on this site — LangGraph StateGraph, Pinecone search and live GitHub data over SSE.",
+        image: "",
+        link: "/agent-design",
         color: "from-coral/20 to-violet/20",
         accent: "#FF3D5A",
         tall: false,
     },
-    
 ];
 
 export default function BottomProjectsGrid() {
@@ -45,13 +47,13 @@ export default function BottomProjectsGrid() {
                                 className="text-text-label text-[11px] uppercase tracking-[0.3em] mb-3"
                                 style={{ fontFamily: "var(--font-space-mono)" }}
                             >
-                                · More Projects
+                                · More AI Projects
                             </p>
                             <h2
                                 className="text-4xl md:text-5xl font-bold text-text-primary"
                                 style={{ fontFamily: "'Clash Display', sans-serif" }}
                             >
-                                Recent Work
+                                More Builds
                             </h2>
                         </div>
                         <Link
@@ -64,7 +66,7 @@ export default function BottomProjectsGrid() {
                     </div>
                 </AnimatedSection>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
                     {bottomProjects.map((project, idx) => (
                         <motion.div
                             key={project.title}
@@ -76,7 +78,11 @@ export default function BottomProjectsGrid() {
                             className={`group relative bg-navy-card border border-navy-border rounded-sm overflow-hidden hover:border-coral/40 hover:shadow-[0_0_30px_rgba(255,61,90,0.1)] transition-all duration-500 ${project.tall ? "md:row-span-2" : ""
                                 }`}
                         >
-                            <Link href={project.link}>
+                            <a
+                                href={project.link}
+                                {...(project.link.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                                className="block"
+                            >
                                 <div
                                     className={`relative bg-linear-to-br ${project.color} overflow-hidden ${project.tall ? "h-80 md:h-full md:min-h-[420px]" : "h-56"
                                         }`}
@@ -85,7 +91,7 @@ export default function BottomProjectsGrid() {
                                         <img
                                             src={project.image}
                                             alt={project.title}
-                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                         />
                                     )}
                                     <div
@@ -111,7 +117,7 @@ export default function BottomProjectsGrid() {
                                     <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-white/20" />
                                 </div>
 
-                                <div className="p-5 flex items-center justify-between">
+                                <div className="p-5 flex items-start justify-between gap-4">
                                     <div>
                                         <p
                                             className="text-text-label text-[10px] uppercase tracking-[0.25em] mb-1"
@@ -125,12 +131,13 @@ export default function BottomProjectsGrid() {
                                         >
                                             {project.title}
                                         </h3>
+                                        <p className="text-text-muted text-xs leading-relaxed mt-2">{project.desc}</p>
                                     </div>
-                                    <div className="w-8 h-8 rounded-sm border border-navy-border flex items-center justify-center text-text-muted group-hover:border-coral group-hover:text-coral transition-colors">
+                                    <div className="shrink-0 w-8 h-8 rounded-sm border border-navy-border flex items-center justify-center text-text-muted group-hover:border-coral group-hover:text-coral transition-colors">
                                         →
                                     </div>
                                 </div>
-                            </Link>
+                            </a>
                         </motion.div>
                     ))}
                 </div>

@@ -81,14 +81,29 @@
     },
     {
       "name": "CuraLink — Medical Research Assistant",
-      "description": "LLM-powered research assistant using query expansion and cross-encoder reranking to improve retrieval accuracy.",
+      "description": "LLM-powered medical research assistant combining live data from PubMed, OpenAlex and ClinicalTrials.gov; uses LLM query expansion and cross-encoder reranking to improve retrieval accuracy, with source-attributed summaries.",
       "tech_stack": [
         "Python",
         "LLMs",
         "RAG",
         "Cross-Encoder Reranking"
       ],
-      "url": "https://github.com/Dues-ExMachina"
+      "url": "https://cura-link-coral.vercel.app",
+      "github": "https://github.com/Dues-ExMachina/CuraLink"
+    },
+    {
+      "name": "AI-First HCP CRM",
+      "description": "Full-stack AI-first CRM for healthcare professionals: field reps log and analyse doctor interactions through a form or natural language. A LangGraph agent classifies intent, extracts entities into structured JSON and routes to 5 database tools, then suggests follow-up actions.",
+      "tech_stack": [
+        "Python",
+        "FastAPI",
+        "LangGraph",
+        "Groq",
+        "React",
+        "Redux Toolkit",
+        "MySQL"
+      ],
+      "url": "https://hcp-crm-gules.vercel.app"
     },
     {
       "name": "RAG Chatbot",

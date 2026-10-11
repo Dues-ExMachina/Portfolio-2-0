@@ -1,56 +1,92 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Copy, Check, Sparkles, ChevronDown } from "lucide-react";
+import { X, Send, Copy, Check, Sparkles, RotateCcw, ChevronDown } from "lucide-react";
+import type { BackendStatus } from "@/components/KeepAlive";
+
+// ─── Theme (matches globals.css tokens) ──────────────────────────────────────
+
+const C = {
+  navy: "#050B1F",
+  navySecondary: "#080F28",
+  card: "#0C1535",
+  border: "#1A2540",
+  coral: "#FF3D5A",
+  orange: "#FF6B35",
+  cyan: "#00C8FF",
+  violet: "#8B5CF6",
+  text: "#F0F4FF",
+  muted: "#8A9AC4",
+  label: "#4A5D90",
+};
+const MONO = "var(--font-space-mono), ui-monospace, monospace";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type OrbState = "idle" | "thinking" | "searching" | "streaming" | "done";
+type OrbState = "idle" | "thinking" | "streaming" | "error";
 
 type Message =
   | { role: "user"; text: string }
-  | { role: "assistant"; text: string; tools?: string[] };
+  | { role: "assistant"; text: string; tools?: string[]; error?: boolean };
 
-// ─── Mini orb for header ─────────────────────────────────────────────────────
-function MiniOrb({ state }: { state: OrbState }) {
-  const isBusy = state === "thinking" || state === "searching" || state === "streaming";
+const SUGGESTIONS = [
+  "What does Anubhab work on at AIVOA.ai?",
+  "Show me his strongest AI projects",
+  "What's his tech stack for agentic AI?",
+  "How can I contact him?",
+];
+
+const MAX_CHARS = 280;
+
+function newSessionId() {
+  return `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ─── Status orb ──────────────────────────────────────────────────────────────
+
+function StatusOrb({ state, size = 30 }: { state: OrbState; size?: number }) {
+  const busy = state === "thinking" || state === "streaming";
   return (
-    <div style={{ position: "relative", width: 28, height: 28, flexShrink: 0 }}>
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <motion.div
         style={{
           position: "absolute",
           inset: 0,
           borderRadius: "50%",
-          background:
-            "radial-gradient(ellipse at 35% 30%, rgba(100,180,255,0.95) 0%, rgba(30,80,220,0.9) 45%, rgba(8,20,120,0.98) 100%)",
-          boxShadow: isBusy
-            ? "0 0 14px 5px rgba(50,130,255,0.65)"
-            : "0 0 10px 3px rgba(30,100,255,0.4)",
+          background: `conic-gradient(from 0deg, ${C.coral}, ${C.violet}, ${C.cyan}, ${C.coral})`,
+          padding: 1.5,
         }}
-        animate={isBusy ? { scale: [1, 1.08, 0.95, 1] } : { scale: 1 }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        style={{
-          position: "absolute",
-          inset: "8%",
-          borderRadius: "50%",
-          boxShadow: "inset 0 0 0 1.5px rgba(120,210,255,0.7)",
-        }}
-        animate={{ transform: ["rotateX(65deg) rotateZ(0deg)", "rotateX(65deg) rotateZ(360deg)"] }}
-        transition={{ duration: isBusy ? 1.2 : 4, repeat: Infinity, ease: "linear" }}
-      />
+        animate={{ rotate: 360 }}
+        transition={{ duration: busy ? 1.4 : 6, repeat: Infinity, ease: "linear" }}
+      >
+        <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: C.navySecondary }} />
+      </motion.div>
       <div
         style={{
           position: "absolute",
-          top: "15%",
-          left: "20%",
-          width: "24%",
-          height: "16%",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: C.coral,
+          fontFamily: MONO,
+          fontWeight: 700,
+          fontSize: size * 0.34,
+        }}
+      >
+        AD
+      </div>
+      <span
+        style={{
+          position: "absolute",
+          right: -1,
+          bottom: -1,
+          width: size * 0.28,
+          height: size * 0.28,
           borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(220,240,255,0.75) 0%, transparent 100%)",
-          filter: "blur(1px)",
+          border: `2px solid ${C.navySecondary}`,
+          background: state === "error" ? "#f87171" : busy ? "#facc15" : "#34d399",
         }}
       />
     </div>
@@ -58,206 +94,341 @@ function MiniOrb({ state }: { state: OrbState }) {
 }
 
 // ─── Typing dots ─────────────────────────────────────────────────────────────
-function TypingDots() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "12px 16px" }}>
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={i}
-          style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(100,160,255,0.7)" }}
-          animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
-        />
-      ))}
-    </div>
-  );
-}
 
-// ─── Tool badge ──────────────────────────────────────────────────────────────
-function ToolBadge({ tools }: { tools: string[] }) {
-  const colors: Record<string, string> = {
-    Pinecone: "#a855f7",
-    GitHub: "#6e7681",
-    "Web Fetch": "#22d3ee",
-    Profile: "#f59e0b",
-  };
+function TypingDots({ label }: { label: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 6 }}>
-      {tools.map((t) => (
-        <span
-          key={t}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 10.5,
-            fontWeight: 600,
-            color: colors[t] ?? "#888",
-            background: `${colors[t] ?? "#888"}15`,
-            border: `1px solid ${colors[t] ?? "#888"}30`,
-            borderRadius: 999,
-            padding: "2px 8px",
-            letterSpacing: "0.02em",
-          }}
-        >
-          <div
-            style={{ width: 5, height: 5, borderRadius: "50%", background: colors[t] ?? "#888" }}
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px" }}>
+      <div style={{ display: "flex", gap: 4 }}>
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            style={{ width: 6, height: 6, borderRadius: "50%", background: C.coral }}
+            animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }}
+            transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }}
           />
-          {t}
-        </span>
-      ))}
+        ))}
+      </div>
+      <span style={{ color: C.muted, fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em" }}>{label}</span>
     </div>
   );
 }
 
-// ─── renderText helper ────────────────────────────────────────────────────────
-function renderText(text: string) {
-  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
-    i % 2 === 1 ? <strong key={i} style={{ color: "#c8e0ff" }}>{part}</strong> : <span key={i}>{part}</span>
+// ─── Tool badges ─────────────────────────────────────────────────────────────
+
+const TOOL_COLORS: Record<string, string> = {
+  Pinecone: C.violet,
+  GitHub: "#9aa4b2",
+  Web: C.cyan,
+  Profile: C.orange,
+};
+
+function ToolBadges({ tools }: { tools: string[] }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+      <span style={{ color: C.label, fontSize: 9.5, fontFamily: MONO, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+        Sources
+      </span>
+      {tools.map((t) => {
+        const color = TOOL_COLORS[t] ?? C.muted;
+        return (
+          <span
+            key={t}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 600,
+              color,
+              background: `${color}14`,
+              border: `1px solid ${color}33`,
+              borderRadius: 999,
+              padding: "1px 8px",
+            }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />
+            {t}
+          </span>
+        );
+      })}
+    </div>
   );
+}
+
+// ─── Lightweight markdown (bold, code, links, bullet / numbered lists) ──────
+
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\)|https?:\/\/[^\s)]+)/g;
+  return text.split(pattern).filter(Boolean).map((part, i) => {
+    const key = `${keyPrefix}-${i}`;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={key} style={{ color: C.text, fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={key} style={{ fontFamily: MONO, fontSize: "0.88em", background: "rgba(255,255,255,0.07)", padding: "1px 5px", borderRadius: 4 }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    const md = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    const href = md ? md[2] : /^https?:\/\//.test(part) ? part : null;
+    if (href) {
+      return (
+        <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={{ color: C.coral, textDecoration: "underline", textUnderlineOffset: 2, wordBreak: "break-word" }}>
+          {md ? md[1] : part}
+        </a>
+      );
+    }
+    return <React.Fragment key={key}>{part}</React.Fragment>;
+  });
+}
+
+function RichText({ text }: { text: string }) {
+  const blocks: React.ReactNode[] = [];
+  let list: { ordered: boolean; items: string[] } | null = null;
+
+  const flushList = () => {
+    if (!list) return;
+    const { ordered, items } = list;
+    const Tag = ordered ? "ol" : "ul";
+    blocks.push(
+      <Tag key={`l-${blocks.length}`} style={{ margin: "4px 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 3, listStyle: ordered ? "decimal" : "disc" }}>
+        {items.map((it, i) => (
+          <li key={i} style={{ paddingLeft: 2 }}>{renderInline(it, `li-${blocks.length}-${i}`)}</li>
+        ))}
+      </Tag>
+    );
+    list = null;
+  };
+
+  text.split("\n").forEach((raw, idx) => {
+    const line = raw.trimEnd();
+    const bullet = line.match(/^\s*[-*•]\s+(.*)$/);
+    const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (bullet || numbered) {
+      const ordered = !!numbered;
+      if (list && list.ordered !== ordered) flushList();
+      if (!list) list = { ordered, items: [] };
+      list.items.push((bullet ?? numbered)![1]);
+      return;
+    }
+    flushList();
+    if (!line.trim()) return;
+    const heading = line.match(/^#{1,4}\s+(.*)$/);
+    blocks.push(
+      <p key={`p-${idx}`} style={{ margin: "2px 0", fontWeight: heading ? 600 : undefined, color: heading ? C.text : undefined }}>
+        {renderInline(heading ? heading[1] : line, `p-${idx}`)}
+      </p>
+    );
+  });
+  flushList();
+  return <>{blocks}</>;
 }
 
 // ─── Chat Panel ───────────────────────────────────────────────────────────────
+
 function ChatPanel({ onClose }: { onClose: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [orbState, setOrbState] = useState<OrbState>("idle");
-  const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
+  const [streamingTools, setStreamingTools] = useState<string[]>([]);
   const [copied, setCopied] = useState<number | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [sessionId, setSessionId] = useState(newSessionId);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const MAX_CHARS = 280;
-
-  const SUGGESTIONS = [
-    "What's Anubhab's most complex project?",
-    "What backend tech does he use?",
-    "Has he worked with RAG before?",
-  ];
-
-  const isBusy = orbState === "thinking" || orbState === "searching" || isStreaming;
+  const [backend, setBackend] = useState<BackendStatus | undefined>(() =>
+    typeof window !== "undefined" ? window.__backendStatus : undefined
+  );
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText, isStreaming]);
+    const onStatus = (e: Event) => setBackend((e as CustomEvent<BackendStatus>).detail);
+    window.addEventListener("backend-status", onStatus);
+    return () => window.removeEventListener("backend-status", onStatus);
+  }, []);
+
+  const isBusy = orbState === "thinking" || orbState === "streaming";
+  const agentUrl = process.env.NEXT_PUBLIC_AGENT_URL;
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages, streamingText, orbState]);
 
   useEffect(() => {
     if (!isBusy) inputRef.current?.focus();
   }, [isBusy]);
 
-  async function handleSend(overrideInput?: string) {
-    const q = (overrideInput ?? input).trim();
-    if (!q || isBusy) return;
+  useEffect(() => () => abortRef.current?.abort(), []);
 
-    const newMessages: Message[] = [...messages, { role: "user", text: q }];
-    setMessages(newMessages);
-    setInput("");
-    setOrbState("thinking");
-    setStreamingText("");
-    setIsStreaming(false);
+  // Auto-grow the textarea up to ~4 lines
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
+  }, [input]);
 
-    const history = messages.map((m) => ({ role: m.role, content: m.text }));
+  const handleSend = useCallback(
+    async (override?: string, baseMessages?: Message[]) => {
+      const q = (override ?? input).trim();
+      if (!q || isBusy || q.length > MAX_CHARS) return;
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_AGENT_URL}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: q, session_id: "portfolio-session", history }),
-      });
+      const prior = baseMessages ?? messages;
+      setMessages([...prior, { role: "user", text: q }]);
+      setInput("");
+      setOrbState("thinking");
+      setStreamingText("");
+      setStreamingTools([]);
 
-      if (!res.body) throw new Error("No response body");
+      const history = prior
+        .filter((m) => !(m.role === "assistant" && m.error))
+        .map((m) => ({ role: m.role, content: m.text }));
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
+      const fail = (text: string) => {
+        setOrbState("error");
+        setStreamingText("");
+        setMessages((prev) => [...prev, { role: "assistant", text, error: true }]);
+      };
+
+      if (!agentUrl) {
+        fail("The agent backend isn't configured yet (NEXT_PUBLIC_AGENT_URL is missing). Meanwhile, you can reach Anubhab via the Contact page or LinkedIn.");
+        return;
+      }
+
+      const controller = new AbortController();
+      abortRef.current = controller;
 
       let fullText = "";
       let tools: string[] = [];
-      let buffer = "";
+      let finished = false;
 
-      setOrbState("streaming");
-      setIsStreaming(true);
+      try {
+        const res = await fetch(`${agentUrl}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: q, session_id: sessionId, history }),
+          signal: controller.signal,
+        });
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        if (!res.ok || !res.body) throw new Error(`Backend responded with ${res.status}`);
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
 
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const data = line.replace("data:", "").trim();
+        while (!finished) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-          if (data === "[DONE]") {
-            setIsStreaming(false);
-            setOrbState("done");
-            setMessages((prev) => [...prev, { role: "assistant", text: fullText, tools }]);
-            setStreamingText("");
-            return;
-          }
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.type === "tools") tools = parsed.tools || [];
-            if (parsed.type === "text") {
-              fullText += parsed.token;
-              setStreamingText(fullText);
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const data = line.slice(5).trim();
+
+            if (data === "[DONE]") {
+              finished = true;
+              break;
             }
-          } catch {}
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === "tools") {
+                tools = parsed.tools || [];
+                setStreamingTools(tools);
+              } else if (parsed.type === "text") {
+                fullText += parsed.token;
+                setOrbState("streaming");
+                setStreamingText(fullText);
+              } else if (parsed.type === "error") {
+                throw new Error(parsed.message || "Agent error");
+              }
+            } catch (e) {
+              if (e instanceof SyntaxError) continue;
+              throw e;
+            }
+          }
         }
+
+        if (!fullText.trim()) throw new Error("Empty response");
+
+        setMessages((prev) => [...prev, { role: "assistant", text: fullText, tools }]);
+        setStreamingText("");
+        setOrbState("idle");
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        console.error(err);
+        if (fullText.trim()) {
+          // Keep whatever was streamed before the connection dropped
+          setMessages((prev) => [...prev, { role: "assistant", text: `${fullText}\n\n(response interrupted)`, tools }]);
+          setStreamingText("");
+          setOrbState("idle");
+        } else {
+          fail("I couldn't reach the agent right now — the server may be waking up (free hosting sleeps when idle). Give it ~30 seconds and hit retry.");
+        }
+      } finally {
+        abortRef.current = null;
       }
-    } catch (err) {
-      console.error(err);
-      setOrbState("idle");
-      setIsStreaming(false);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Sorry, I couldn't connect to the backend. Please try again." },
-      ]);
-    }
+    },
+    [input, isBusy, messages, agentUrl, sessionId]
+  );
+
+  function handleRetry() {
+    // Drop the failed answer and the question it belonged to, then re-ask
+    const lastUserIdx = messages.map((m) => m.role).lastIndexOf("user");
+    if (lastUserIdx < 0) return;
+    const q = messages[lastUserIdx].text;
+    const base = messages.slice(0, lastUserIdx);
+    handleSend(q, base);
+  }
+
+  function handleReset() {
+    abortRef.current?.abort();
+    setMessages([]);
+    setStreamingText("");
+    setStreamingTools([]);
+    setOrbState("idle");
+    setSessionId(newSessionId());
   }
 
   function handleCopy(text: string, idx: number) {
     navigator.clipboard.writeText(text.replace(/\*\*/g, ""));
     setCopied(idx);
-    setTimeout(() => setCopied(null), 1800);
+    setTimeout(() => setCopied(null), 1600);
   }
 
   const charCount = input.length;
   const charOverLimit = charCount > MAX_CHARS;
+  const canSend = !isBusy && charCount > 0 && !charOverLimit;
+  const statusText =
+    orbState === "thinking" ? "Searching his profile…" : orbState === "streaming" ? "Typing…" : orbState === "error" ? "Connection issue" : backend === "waking" ? "Waking up the server (free tier, ~30s)…" : backend === "offline" ? "Server is offline right now" : "Online · answers from his resume & GitHub";
 
   return (
     <div
+      role="dialog"
+      aria-label="Chat with Anubhab's portfolio agent"
       style={{
-        width: 360,
-        height: 560,
-        background: "rgba(6, 9, 20, 0.97)",
-        borderRadius: 24,
-        border: "1px solid rgba(80,140,255,0.18)",
-        boxShadow:
-          "0 0 0 1px rgba(255,255,255,0.05), 0 24px 80px rgba(0,0,0,0.75), 0 0 60px rgba(30,80,255,0.12)",
+        width: "min(400px, calc(100vw - 24px))",
+        height: "min(620px, calc(100dvh - 160px))",
+        background: `linear-gradient(180deg, ${C.navySecondary} 0%, ${C.navy} 100%)`,
+        borderRadius: 18,
+        border: `1px solid ${C.border}`,
+        boxShadow: `0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,61,90,0.06), 0 0 60px rgba(255,61,90,0.08)`,
         display: "flex",
         flexDirection: "column",
         fontFamily: "'Inter', system-ui, sans-serif",
         overflow: "hidden",
+        position: "relative",
       }}
     >
-      {/* Ambient gradient */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: -60,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "140%",
-          height: 260,
-          background:
-            "radial-gradient(ellipse at center bottom, rgba(20,60,200,0.35) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+      {/* Coral top accent */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${C.coral}, ${C.violet}, ${C.cyan})` }} />
 
       {/* ── Header ── */}
       <div
@@ -265,181 +436,104 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "14px 16px 12px",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          padding: "16px 14px 12px 16px",
+          borderBottom: `1px solid ${C.border}`,
           flexShrink: 0,
-          position: "relative",
-          zIndex: 1,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <MiniOrb state={orbState} />
-          <div>
-            <div style={{ color: "#fff", fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>
-              Portfolio Agent
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 1 }}>
-              {isBusy
-                ? orbState === "thinking"
-                  ? "Thinking…"
-                  : orbState === "searching"
-                  ? "Searching…"
-                  : "Writing…"
-                : "Online · Ask me anything"}
+        <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+          <StatusOrb state={orbState === "idle" && backend === "waking" ? "thinking" : orbState === "idle" && backend === "offline" ? "error" : orbState} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: C.text, fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>Anubhab&apos;s AI Agent</div>
+            <div style={{ color: C.muted, fontSize: 11, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {statusText}
             </div>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "50%",
-            width: 30,
-            height: 30,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "rgba(255,255,255,0.5)",
-            flexShrink: 0,
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)")
-          }
-          onMouseLeave={(e) =>
-            ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)")
-          }
-          aria-label="Close chat"
-        >
-          <ChevronDown size={15} />
-        </button>
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          {messages.length > 0 && (
+            <IconButton onClick={handleReset} label="New chat">
+              <RotateCcw size={14} />
+            </IconButton>
+          )}
+          <IconButton onClick={onClose} label="Minimise chat">
+            <ChevronDown size={16} />
+          </IconButton>
+        </div>
       </div>
 
       {/* ── Messages ── */}
       <div
+        ref={scrollRef}
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "14px 14px 8px",
+          padding: "16px 14px 8px",
           display: "flex",
           flexDirection: "column",
-          gap: 12,
-          position: "relative",
-          zIndex: 1,
-          scrollbarWidth: "none",
+          gap: 14,
+          scrollbarWidth: "thin",
+          scrollbarColor: `${C.border} transparent`,
         }}
       >
         {/* Empty state */}
         {messages.length === 0 && !isBusy && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 16,
-              paddingTop: 12,
-            }}
-          >
-            {/* Hero orb */}
-            <div style={{ position: "relative", width: 72, height: 72 }}>
-              <motion.div
-                style={{
-                  position: "absolute",
-                  inset: -16,
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle, rgba(30,100,255,0.18) 0%, transparent 70%)",
-                  filter: "blur(12px)",
-                }}
-                animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.9, 0.5] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(ellipse at 35% 30%, rgba(100,185,255,0.95) 0%, rgba(25,75,220,0.9) 45%, rgba(8,18,110,0.98) 100%)",
-                  boxShadow:
-                    "0 0 40px 10px rgba(30,100,255,0.4), 0 0 80px 30px rgba(20,60,220,0.18)",
-                  border: "1px solid rgba(100,180,255,0.25)",
-                }}
-                animate={{ rotate: [0, 4, -2, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                style={{
-                  position: "absolute",
-                  inset: "8%",
-                  borderRadius: "50%",
-                  boxShadow: "inset 0 0 0 1.5px rgba(120,210,255,0.6)",
-                }}
-                animate={{ transform: ["rotateX(65deg) rotateZ(0deg)", "rotateX(65deg) rotateZ(360deg)"] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "13%",
-                  left: "18%",
-                  width: "26%",
-                  height: "16%",
-                  borderRadius: "50%",
-                  background: "radial-gradient(ellipse, rgba(210,235,255,0.7) 0%, transparent 100%)",
-                  filter: "blur(2px)",
-                }}
-              />
-            </div>
-
-            <div style={{ textAlign: "center" }}>
-              <div style={{ color: "#fff", fontSize: 17, fontWeight: 700, lineHeight: 1.3, marginBottom: 4 }}>
-                Hey, I&apos;m Anubhab&apos;s AI
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", gap: 18, paddingTop: 6 }}>
+            <div>
+              <div style={{ color: C.label, fontSize: 10, fontFamily: MONO, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 8 }}>
+                · Portfolio Agent
               </div>
-              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12.5, lineHeight: 1.5 }}>
-                Ask me about his projects, skills,
-                <br />
-                or anything else on the portfolio.
+              <div style={{ color: C.text, fontSize: 20, fontWeight: 700, lineHeight: 1.25, marginBottom: 8 }}>
+                Hi! I know everything about{" "}
+                <span style={{ background: `linear-gradient(135deg, ${C.coral}, ${C.orange})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  Anubhab&apos;s work.
+                </span>
+              </div>
+              <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.55 }}>
+                Ask about his experience at AIVOA.ai, his projects, or his skills. Answers come from his resume, project index and live GitHub.
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
-              {SUGGESTIONS.map((s) => (
-                <button
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ color: C.label, fontSize: 10, fontFamily: MONO, letterSpacing: "0.2em", textTransform: "uppercase" }}>Try asking</div>
+              {SUGGESTIONS.map((s, i) => (
+                <motion.button
                   key={s}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.08 * i }}
                   onClick={() => handleSend(s)}
+                  className="group"
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 12,
-                    padding: "9px 14px",
-                    color: "rgba(255,255,255,0.65)",
-                    fontSize: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    background: C.card,
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 10,
+                    padding: "10px 13px",
+                    color: "#C3CDE8",
+                    fontSize: 12.5,
                     cursor: "pointer",
                     textAlign: "left",
                     fontFamily: "inherit",
-                    transition: "background 0.2s, border-color 0.2s, color 0.2s",
-                    lineHeight: 1.4,
+                    transition: "border-color 0.2s, background 0.2s, color 0.2s",
                   }}
                   onMouseEnter={(e) => {
-                    const el = e.currentTarget as HTMLButtonElement;
-                    el.style.background = "rgba(60,120,255,0.12)";
-                    el.style.borderColor = "rgba(80,140,255,0.35)";
-                    el.style.color = "rgba(255,255,255,0.9)";
+                    e.currentTarget.style.borderColor = `${C.coral}66`;
+                    e.currentTarget.style.background = "rgba(255,61,90,0.06)";
+                    e.currentTarget.style.color = C.text;
                   }}
                   onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLButtonElement;
-                    el.style.background = "rgba(255,255,255,0.05)";
-                    el.style.borderColor = "rgba(255,255,255,0.1)";
-                    el.style.color = "rgba(255,255,255,0.65)";
+                    e.currentTarget.style.borderColor = C.border;
+                    e.currentTarget.style.background = C.card;
+                    e.currentTarget.style.color = "#C3CDE8";
                   }}
                 >
                   {s}
-                </button>
+                  <span style={{ color: C.coral, flexShrink: 0 }}>→</span>
+                </motion.button>
               ))}
             </div>
           </motion.div>
@@ -447,261 +541,268 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
 
         {/* Message history */}
         {messages.map((msg, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-          >
+          <motion.div key={idx} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
             {msg.role === "user" ? (
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <div
                   style={{
-                    background: "rgba(50,100,255,0.18)",
-                    border: "1px solid rgba(80,140,255,0.22)",
-                    borderRadius: "18px 18px 4px 18px",
+                    background: `linear-gradient(135deg, ${C.coral}, #E8344F)`,
+                    borderRadius: "16px 16px 4px 16px",
                     padding: "9px 14px",
-                    color: "rgba(255,255,255,0.92)",
+                    color: "#fff",
                     fontSize: 13.5,
-                    maxWidth: "80%",
-                    lineHeight: 1.55,
+                    maxWidth: "82%",
+                    lineHeight: 1.5,
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    boxShadow: "0 4px 18px rgba(255,61,90,0.2)",
                   }}
                 >
                   {msg.text}
                 </div>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {msg.tools && msg.tools.length > 0 && <ToolBadge tools={msg.tools} />}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
+                {msg.tools && msg.tools.length > 0 && <ToolBadges tools={msg.tools} />}
                 <div
                   style={{
-                    alignSelf: "flex-start",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.09)",
-                    borderRadius: "4px 18px 18px 18px",
+                    background: msg.error ? "rgba(248,113,113,0.08)" : C.card,
+                    border: `1px solid ${msg.error ? "rgba(248,113,113,0.3)" : C.border}`,
+                    borderRadius: "4px 16px 16px 16px",
                     padding: "10px 14px",
-                    color: "rgba(255,255,255,0.85)",
+                    color: msg.error ? "#fecaca" : "#C9D3EE",
                     fontSize: 13.5,
-                    maxWidth: "88%",
-                    lineHeight: 1.65,
-                    letterSpacing: "0.01em",
+                    maxWidth: "92%",
+                    lineHeight: 1.6,
+                    wordBreak: "break-word",
                   }}
                 >
-                  {renderText(msg.text)}
+                  <RichText text={msg.text} />
                 </div>
-                {/* Copy button */}
-                <button
-                  onClick={() => handleCopy(msg.text, idx)}
-                  style={{
-                    alignSelf: "flex-start",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "rgba(255,255,255,0.28)",
-                    fontSize: 11,
-                    fontFamily: "inherit",
-                    padding: "2px 4px",
-                    borderRadius: 6,
-                    transition: "color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.color =
-                      copied === idx ? "#22d3ee" : "rgba(255,255,255,0.28)")
-                  }
-                >
-                  {copied === idx ? (
-                    <Check size={11} style={{ color: "#22d3ee" }} />
+                <div style={{ display: "flex", gap: 4 }}>
+                  {msg.error ? (
+                    idx === messages.length - 1 && (
+                      <SmallAction onClick={handleRetry} disabled={isBusy}>
+                        <RotateCcw size={11} /> Retry
+                      </SmallAction>
+                    )
                   ) : (
-                    <Copy size={11} />
+                    <SmallAction onClick={() => handleCopy(msg.text, idx)} active={copied === idx}>
+                      {copied === idx ? <Check size={11} /> : <Copy size={11} />}
+                      {copied === idx ? "Copied" : "Copy"}
+                    </SmallAction>
                   )}
-                  <span style={{ color: copied === idx ? "#22d3ee" : "inherit" }}>
-                    {copied === idx ? "Copied!" : "Copy"}
-                  </span>
-                </button>
+                </div>
               </div>
             )}
           </motion.div>
         ))}
 
-        {/* Thinking / streaming indicator */}
+        {/* In-flight answer */}
         <AnimatePresence>
           {isBusy && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              style={{ display: "flex", flexDirection: "column", gap: 6 }}
+              style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}
             >
-              {streamingText ? (
-                <div>
-                  <div
-                    style={{
-                      alignSelf: "flex-start",
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.09)",
-                      borderRadius: "4px 18px 18px 18px",
-                      padding: "10px 14px",
-                      color: "rgba(255,255,255,0.85)",
-                      fontSize: 13.5,
-                      maxWidth: "88%",
-                      lineHeight: 1.65,
-                      display: "inline-block",
-                    }}
-                  >
-                    {renderText(streamingText)}
+              {streamingTools.length > 0 && <ToolBadges tools={streamingTools} />}
+              <div
+                style={{
+                  background: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: "4px 16px 16px 16px",
+                  color: "#C9D3EE",
+                  fontSize: 13.5,
+                  maxWidth: "92%",
+                  lineHeight: 1.6,
+                  padding: streamingText ? "10px 14px" : 0,
+                  wordBreak: "break-word",
+                }}
+              >
+                {streamingText ? (
+                  <>
+                    <RichText text={streamingText} />
                     <motion.span
-                      style={{
-                        display: "inline-block",
-                        width: 2,
-                        height: "0.9em",
-                        background: "rgba(80,160,255,0.85)",
-                        borderRadius: 1,
-                        marginLeft: 2,
-                        verticalAlign: "text-bottom",
-                      }}
+                      style={{ display: "inline-block", width: 7, height: 14, background: C.coral, marginTop: 2, borderRadius: 1 }}
                       animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 0.65, repeat: Infinity }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
                     />
-                  </div>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.09)",
-                    borderRadius: "4px 18px 18px 18px",
-                    display: "inline-flex",
-                  }}
-                >
-                  <TypingDots />
-                </div>
-              )}
+                  </>
+                ) : (
+                  <TypingDots label={streamingTools.length ? "Reading sources" : "Thinking"} />
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        <div ref={bottomRef} />
       </div>
 
       {/* ── Input ── */}
-      <div
-        style={{
-          padding: "10px 12px 14px",
-          flexShrink: 0,
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
+      <div style={{ padding: "10px 12px 12px", flexShrink: 0, borderTop: `1px solid ${C.border}` }}>
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             gap: 8,
-            background: "rgba(255,255,255,0.06)",
-            border: charOverLimit
-              ? "1px solid rgba(255,80,80,0.5)"
-              : "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 16,
-            padding: "10px 10px 10px 16px",
+            background: C.card,
+            border: `1px solid ${charOverLimit ? "rgba(248,113,113,0.6)" : C.border}`,
+            borderRadius: 12,
+            padding: "8px 8px 8px 14px",
             transition: "border-color 0.2s",
           }}
+          onFocusCapture={(e) => !charOverLimit && (e.currentTarget.style.borderColor = `${C.coral}80`)}
+          onBlurCapture={(e) => !charOverLimit && (e.currentTarget.style.borderColor = C.border)}
         >
-          <input
+          <textarea
             ref={inputRef}
+            rows={1}
             value={input}
-            onChange={(e) => !isBusy && setInput(e.target.value.slice(0, MAX_CHARS + 10))}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder={isBusy ? "Waiting for response…" : "Ask anything…"}
+            onChange={(e) => setInput(e.target.value.slice(0, MAX_CHARS + 20))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+              if (e.key === "Escape") onClose();
+            }}
+            placeholder={isBusy ? "Waiting for the answer…" : "Ask about Anubhab…"}
             disabled={isBusy}
+            aria-label="Message"
             style={{
               flex: 1,
+              resize: "none",
               background: "transparent",
               border: "none",
               outline: "none",
-              color: isBusy ? "rgba(255,255,255,0.3)" : "#fff",
+              color: C.text,
               fontSize: 13.5,
+              lineHeight: 1.5,
               fontFamily: "inherit",
-              cursor: isBusy ? "not-allowed" : "text",
+              padding: "5px 0",
+              maxHeight: 96,
+              opacity: isBusy ? 0.5 : 1,
             }}
           />
-
-          {!isBusy && charCount > MAX_CHARS * 0.75 && (
-            <span
-              style={{
-                fontSize: 10.5,
-                color: charOverLimit ? "#f87171" : "rgba(255,255,255,0.3)",
-                flexShrink: 0,
-              }}
-            >
-              {charOverLimit ? `-${charCount - MAX_CHARS}` : MAX_CHARS - charCount}
+          {charCount > MAX_CHARS * 0.8 && (
+            <span style={{ fontSize: 10.5, fontFamily: MONO, color: charOverLimit ? "#f87171" : C.label, alignSelf: "center", flexShrink: 0 }}>
+              {MAX_CHARS - charCount}
             </span>
           )}
-
           <motion.button
             onClick={() => handleSend()}
-            disabled={isBusy || charOverLimit || charCount === 0}
-            whileHover={!isBusy && charCount > 0 && !charOverLimit ? { scale: 1.08 } : {}}
-            whileTap={!isBusy && charCount > 0 && !charOverLimit ? { scale: 0.92 } : {}}
+            disabled={!canSend}
+            whileHover={canSend ? { scale: 1.06 } : {}}
+            whileTap={canSend ? { scale: 0.92 } : {}}
+            aria-label="Send message"
             style={{
               width: 34,
               height: 34,
-              borderRadius: 10,
-              background:
-                isBusy || charCount === 0 || charOverLimit
-                  ? "rgba(255,255,255,0.06)"
-                  : "rgba(50,110,255,0.75)",
+              borderRadius: 9,
+              background: canSend ? `linear-gradient(135deg, ${C.coral}, ${C.orange})` : "rgba(255,255,255,0.05)",
               border: "none",
-              cursor: isBusy || charCount === 0 || charOverLimit ? "not-allowed" : "pointer",
+              cursor: canSend ? "pointer" : "not-allowed",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              transition: "background 0.2s",
-              boxShadow:
-                !isBusy && charCount > 0 && !charOverLimit
-                  ? "0 0 14px 2px rgba(50,110,255,0.4)"
-                  : "none",
+              boxShadow: canSend ? "0 0 16px rgba(255,61,90,0.35)" : "none",
+              transition: "background 0.2s, box-shadow 0.2s",
             }}
-            aria-label="Send message"
           >
             {isBusy ? (
               <motion.div
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: "50%",
-                  border: "2px solid rgba(255,255,255,0.15)",
-                  borderTopColor: "rgba(255,255,255,0.5)",
-                }}
+                style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", borderTopColor: C.coral }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
               />
             ) : (
-              <Send
-                size={14}
-                style={{
-                  color: charCount === 0 || charOverLimit ? "rgba(255,255,255,0.2)" : "#fff",
-                  marginLeft: 1,
-                  transition: "color 0.2s",
-                }}
-              />
+              <Send size={14} style={{ color: canSend ? "#fff" : C.label, marginLeft: 1 }} />
             )}
           </motion.button>
+        </div>
+        <div style={{ textAlign: "center", color: C.label, fontSize: 10, marginTop: 7, fontFamily: MONO, letterSpacing: "0.04em" }}>
+          LangGraph · Pinecone · Groq — AI can make mistakes
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Floating Button ──────────────────────────────────────────────────────────
+// ─── Small UI helpers ─────────────────────────────────────────────────────────
+
+function IconButton({ onClick, label, children }: { onClick: () => void; label: string; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: `1px solid ${C.border}`,
+        borderRadius: 8,
+        width: 30,
+        height: 30,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: C.muted,
+        transition: "color 0.2s, border-color 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = C.text;
+        e.currentTarget.style.borderColor = `${C.coral}66`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = C.muted;
+        e.currentTarget.style.borderColor = C.border;
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SmallAction({ onClick, children, active, disabled }: { onClick: () => void; children: React.ReactNode; active?: boolean; disabled?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        background: "none",
+        border: "none",
+        cursor: disabled ? "not-allowed" : "pointer",
+        color: active ? C.cyan : C.label,
+        fontSize: 11,
+        fontFamily: "inherit",
+        padding: "2px 4px",
+        borderRadius: 6,
+        transition: "color 0.2s",
+      }}
+      onMouseEnter={(e) => !active && (e.currentTarget.style.color = C.text)}
+      onMouseLeave={(e) => !active && (e.currentTarget.style.color = C.label)}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─── Floating launcher ────────────────────────────────────────────────────────
+
 export default function PortfolioChatWidget() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <>
@@ -709,55 +810,47 @@ export default function PortfolioChatWidget() {
         {open && (
           <motion.div
             key="panel"
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 340, damping: 30 }}
-            style={{
-              position: "fixed",
-              bottom: 82,
-              right: 24,
-              zIndex: 9999,
-            }}
+            style={{ position: "fixed", bottom: 80, right: 12, zIndex: 9999, transformOrigin: "bottom right" }}
+            className="sm:right-6!"
           >
             <ChatPanel onClose={() => setOpen(false)} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Toggle button */}
       <motion.button
         onClick={() => setOpen((o) => !o)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.93 }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.94 }}
+        className="right-3! sm:right-6!"
         style={{
           position: "fixed",
-          bottom: 24,
+          bottom: 20,
           right: 24,
           height: 46,
           borderRadius: 999,
-          background: open
-            ? "rgba(10,14,28,0.95)"
-            : "linear-gradient(135deg, #1a56ff 0%, #0a2acc 100%)",
+          background: open ? C.navySecondary : `linear-gradient(135deg, ${C.coral} 0%, ${C.orange} 100%)`,
           boxShadow: open
-            ? "0 0 0 1.5px rgba(80,140,255,0.4), 0 8px 24px rgba(0,0,0,0.5)"
-            : "0 0 24px 6px rgba(30,80,255,0.35), 0 8px 24px rgba(0,0,0,0.45)",
-          border: open
-            ? "1px solid rgba(80,140,255,0.3)"
-            : "1px solid rgba(100,160,255,0.3)",
+            ? `0 0 0 1px ${C.border}, 0 8px 24px rgba(0,0,0,0.5)`
+            : "0 0 26px 4px rgba(255,61,90,0.35), 0 8px 24px rgba(0,0,0,0.45)",
+          border: open ? `1px solid ${C.border}` : "1px solid rgba(255,255,255,0.18)",
           cursor: "pointer",
           zIndex: 9999,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          padding: "0 20px",
+          padding: "0 18px",
           fontFamily: "'Inter', system-ui, sans-serif",
           overflow: "hidden",
         }}
-        aria-label="Open Portfolio Agent"
+        aria-label={open ? "Close portfolio agent" : "Open portfolio agent"}
+        aria-expanded={open}
       >
-        {/* Shimmer on closed state */}
         {!open && (
           <motion.div
             style={{
@@ -766,8 +859,7 @@ export default function PortfolioChatWidget() {
               bottom: 0,
               left: "-60%",
               width: "35%",
-              background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
               pointerEvents: "none",
             }}
             animate={{ left: ["-60%", "160%"] }}
@@ -785,17 +877,8 @@ export default function PortfolioChatWidget() {
               transition={{ duration: 0.18 }}
               style={{ display: "flex", alignItems: "center", gap: 7 }}
             >
-              <X size={14} style={{ color: "rgba(255,255,255,0.55)" }} />
-              <span
-                style={{
-                  color: "rgba(255,255,255,0.65)",
-                  fontSize: 12.5,
-                  fontWeight: 500,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                Close
-              </span>
+              <X size={14} style={{ color: C.muted }} />
+              <span style={{ color: C.muted, fontSize: 12.5, fontWeight: 500 }}>Close</span>
             </motion.div>
           ) : (
             <motion.div
@@ -806,29 +889,18 @@ export default function PortfolioChatWidget() {
               transition={{ duration: 0.18 }}
               style={{ display: "flex", alignItems: "center", gap: 8 }}
             >
-              <Sparkles size={14} style={{ color: "rgba(255,255,255,0.9)" }} />
-              <span
-                style={{
-                  color: "#fff",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: "0.02em",
-                  whiteSpace: "nowrap",
-                }}
-              >
+              <Sparkles size={15} style={{ color: "#fff" }} />
+              <span style={{ color: "#fff", fontSize: 13, fontWeight: 600, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
                 Ask my Agent
               </span>
-              <motion.div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "rgba(150,220,255,0.9)",
-                  flexShrink: 0,
-                }}
-                animate={{ opacity: [1, 0.3, 1], scale: [1, 0.75, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              />
+              <span style={{ position: "relative", display: "flex", width: 7, height: 7 }}>
+                <motion.span
+                  style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#fff" }}
+                  animate={{ scale: [1, 2.2], opacity: [0.6, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
+                />
+                <span style={{ position: "relative", width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />
+              </span>
             </motion.div>
           )}
         </AnimatePresence>

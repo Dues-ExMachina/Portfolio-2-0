@@ -2,9 +2,20 @@
 import { useState } from "react";
 import AnimatedSection from "@/components/AnimatedSection";
 import ProjectCard from "@/components/ProjectCard";
+import CurrentRole from "@/components/CurrentRole";
 import Footer from "@/components/Footer";
 
 const allProjects = [
+    {
+        title: "Y Cloude — AI Workspace",
+        description: "Live, deployed Generative AI workspace with real-time chat, AI assistants and analytics. RAG pipelines retrieve context from documents and URLs using Pinecone and LangGraph.",
+        tags: ["LangGraph", "Pinecone", "RAG", "FastAPI", "React"],
+        image: "/ycloude.png",
+        githubUrl: "",
+        projectUrl: "https://ycloude.com",
+        category: "RAG",
+        featured: true,
+    },
     {
         title: "AI Chatbot MCP",
         description: "A high-performance chat interface bridging LLMs with Model Context Protocol (MCP) servers. Features clean UI/UX and multi-server support.",
@@ -13,7 +24,7 @@ const allProjects = [
         githubUrl: "https://github.com/dues-exmachina/ai-chatbot-mcp",
         projectUrl: "https://ai-chatbot-mcp-cpwrf58ktxybtxpq8swjku.streamlit.app/",
         category: "Tools",
-        featured: true,
+        featured: false,
     },
     {
         title: "LangGraph Chatbot",
@@ -38,7 +49,8 @@ const allProjects = [
     
 ];
 
-const filters = ["All", "LLMs", "Agents", "Diffusion", "Tools"];
+// Only show filters that actually have projects
+const filters = ["All", ...Array.from(new Set(allProjects.map((p) => p.category)))];
 
 // Gradient backgrounds for projects (no external images required)
 const projectGradients = [
@@ -80,6 +92,8 @@ export default function ProjectsPage() {
                     </AnimatedSection>
                 </div>
             </section>
+
+            <CurrentRole className="bg-navy-secondary" />
 
             {/* Filter tabs */}
             <section className="py-8 bg-navy border-b border-navy-border sticky top-16 z-50 backdrop-blur-md bg-navy/90">
@@ -126,7 +140,7 @@ export default function ProjectsPage() {
                                             <img
                                                 src={project.image}
                                                 alt={project.title}
-                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
                                             />
                                         )}
                                         <div
@@ -148,12 +162,14 @@ export default function ProjectsPage() {
                                                 </span>
                                             </div>
                                         )}
+                                        {project.githubUrl && (
                                         <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <a href={project.githubUrl} target="_blank" rel="noopener noreferrer"
                                                 className="w-7 h-7 bg-navy/80 backdrop-blur-sm border border-navy-border rounded-sm flex items-center justify-center text-text-muted hover:text-white text-xs">
                                                 GH
                                             </a>
                                         </div>
+                                        )}
                                     </div>
 
                                     <div className="p-5 flex flex-col flex-1">

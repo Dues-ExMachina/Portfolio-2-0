@@ -1,54 +1,22 @@
 import AnimatedSection from "@/components/AnimatedSection";
 import Footer from "@/components/Footer";
+import { experiences } from "@/data/experience";
 import {
     Brain,
     Database,
-    Palette,
-    MessageSquare,
-    Container,
-    Sparkles,
+    Bot,
+    Workflow,
+    ShieldCheck,
+    Server,
 } from "lucide-react";
 
 const skills = [
-    { icon: Brain, title: "LLM Engineering", desc: "Fine-tuning, RLHF, instruction tuning, and productionizing large language models at scale." },
-    { icon: Database, title: "RAG Systems", desc: "End-to-end retrieval-augmented generation pipelines with vector databases and semantic search." },
-    { icon: Palette, title: "Agentic AI", desc: "Building agentic systems with LangGraph, Temporal and MCP — multi-step workflows with self-critique and evaluation loops." },
-    { icon: MessageSquare, title: "Prompt Architecture", desc: "Systematic prompt engineering, chain-of-thought, and few-shot learning strategies." },
-    { icon: Container, title: "MLOps & Deployment", desc: "Model serving, monitoring, and CI/CD pipelines for ML systems using Docker and Kubernetes." },
-    { icon: Sparkles, title: "Creative AI", desc: "Building AI-powered creative tools that merge art and technology in unexpected ways." },
-];
-
-interface Experience {
-    role: string;
-    company: string;
-    url?: string;
-    image?: string;
-    location: string;
-    years: string;
-    desc: string;
-    highlights: string[];
-    stack: string[];
-}
-
-const experiences: Experience[] = [
-    {
-        role: "Software Developer (Intern)",
-        company: "AIVOA.ai",
-        url: "https://aivoa.ai/",
-        image: "/work.png",
-        location: "Bangalore, India · Remote",
-        years: "April 2026 — Present",
-        desc: "Building an agentic, AI-powered eQMS (electronic Quality Management System) for pharmaceutical / GxP clients, where output accuracy, traceability and regulatory compliance are core requirements.",
-        highlights: [
-            "Developed a 5-stage Temporal workflow orchestrating LLM-powered investigation analysis for the Non-Conformance module, with an iterative self-critique loop that scores each response against a 10-point quality rubric.",
-            "Built an autonomous documentation agent (Browser Use, Playwright, LangGraph) that crawls the platform and structures content into a navigation knowledge base feeding a Pinecone-backed RAG pipeline.",
-            "Designed a context-isolated session architecture for the AI chat assistant, enabling multi-record conversational workflows across QMS record types.",
-            "Built a Python calculation engine for cleaning-validation limits (Maximum Allowable Carryover) — HBEL/PDE, dose-based, 10ppm and LD50/NOEL methods per FDA/EMA/PIC/S/WHO — plus a worst-case-product ranking engine.",
-            "Built a recursive PostgreSQL CTE-based traceability graph with React Flow/Dagre visualization and role-based access control, replacing a slower Python-level traversal.",
-            "Architected a 9-stage Supplier Corrective Action Request (SCAR) workflow end-to-end, including seed datasets and a Jinja2/WeasyPrint HTML-to-PDF report pipeline.",
-        ],
-        stack: ["LangGraph", "Temporal", "Pinecone", "FastAPI", "PostgreSQL", "React Flow", "Playwright", "Browser Use"],
-    },
+    { icon: Brain, title: "LLM Applications", desc: "Production LLM chatbots and assistants with prompt engineering, tool-calling and structured outputs, integrated into enterprise apps through APIs." },
+    { icon: Database, title: "RAG Systems", desc: "Retrieval-augmented generation with Pinecone — query expansion, cross-encoder reranking and data pipelines that feed grounded context." },
+    { icon: Bot, title: "Agentic AI", desc: "Multi-step agents with LangGraph and MCP — autonomous browsing agents (Browser Use, Playwright) and dynamic tool selection." },
+    { icon: Workflow, title: "Workflow Orchestration", desc: "Durable, multi-stage LLM workflows with Temporal — including iterative self-critique loops for investigation analysis." },
+    { icon: ShieldCheck, title: "LLM Evaluation & Compliance", desc: "Rubric-based response evaluation and traceability for regulated (pharma / GxP) domains where accuracy is non-negotiable." },
+    { icon: Server, title: "Backend & Full-Stack", desc: "FastAPI, PostgreSQL (recursive CTEs), SQLAlchemy, React with Redux / RTK Query and React Flow, plus PDF reporting with Jinja2 / WeasyPrint." },
 ];
 
 const education = [
@@ -69,7 +37,7 @@ const education = [
 // ];
 
 const certs = [
-    "Web Developmen - DTH/Internship/2024/86"
+    "Web Development — DTH/Internship/2024/86"
 ]
 
 export default function AboutPage() {

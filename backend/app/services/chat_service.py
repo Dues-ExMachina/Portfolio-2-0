@@ -10,27 +10,32 @@ def get_chat_response(message: str, history: List[Dict]) -> Generator[str, None,
     Runs the LangGraph agent pipeline (intent → route → execute tools),
     then streams the LLM answer token-by-token.
     """
-    llm = get_llm()
+    try:
+        llm = get_llm()
 
-    # Run intent classifier → tool router → tool executor
-    tools_used, formatted_messages = run_agent_pipeline(message, history)
+        # Run intent classifier → tool router → tool executor
+        tools_used, formatted_messages = run_agent_pipeline(message, history)
 
-    # Map internal tool names to friendly display names
-    tool_display = {
-        "pinecone_retrieval": "Pinecone",
-        "github_live": "GitHub",
-        "web_fetch": "Web",
-        "profile_tool": "Profile",
-    }
-    friendly_tools = [tool_display.get(t, t) for t in tools_used]
+        # Map internal tool names to friendly display names
+        tool_display = {
+            "pinecone_retrieval": "Pinecone",
+            "github_live": "GitHub",
+            "web_fetch": "Web",
+            "profile_tool": "Profile",
+        }
+        friendly_tools = [tool_display.get(t, t) for t in tools_used]
 
-    # Tell frontend which tools were used before streaming begins
-    yield f"data: {json.dumps({'type': 'tools', 'tools': friendly_tools})}\n\n"
+        # Tell frontend which tools were used before streaming begins
+        yield f"data: {json.dumps({'type': 'tools', 'tools': friendly_tools})}\n\n"
 
-    # Stream the answer token-by-token
-    for chunk in llm.stream(formatted_messages):
-        if hasattr(chunk, "content") and chunk.content:
-            yield f"data: {json.dumps({'type': 'text', 'token': chunk.content})}\n\n"
+        # Stream the answer token-by-token
+        for chunk in llm.stream(formatted_messages):
+            if hasattr(chunk, "content") and chunk.content:
+                yield f"data: {json.dumps({'type': 'text', 'token': chunk.content})}\n\n"
+    except Exception as e:
+        # Surface failures (missing API key, rate limit, etc.) instead of silently closing the stream
+        print(f"[CHAT ERROR] {e}")
+        yield f"data: {json.dumps({'type': 'error', 'message': 'The agent hit an error. Please try again.'})}\n\n"
 
     # Signal stream completion
     yield "data: [DONE]\n\n"

@@ -32,7 +32,8 @@ def generate(data: dict):
 
         # 4. Return the Fal.ai URL back to the frontend
         return {
-            "image_url": final_image_url
+            "image_url": final_image_url,
+            "prompt": prompt,
         }
     
     except RuntimeError as e:

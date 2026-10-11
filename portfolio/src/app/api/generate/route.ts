@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
         }
 
         const backendUrl = process.env.FASTAPI_URL;
-        console.log("NEXT.JS IS ATTEMPTING TO FETCH:", `${backendUrl}/generate`); // <--- ADD THIS
         if (!backendUrl) {
             return NextResponse.json(
                 { error: "FASTAPI_URL not configured" },
@@ -61,7 +60,7 @@ export async function POST(req: NextRequest) {
 
             // Backend is unreachable
             return NextResponse.json(
-                { error: "Cannot connect to the backend server. Is FastAPI running on port 8000?" },
+                { error: "Cannot connect to the backend server." },
                 { status: 502 }
             );
         }

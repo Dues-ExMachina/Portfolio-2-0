@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { Github, Linkedin, FileText } from "lucide-react";
+
+const RESUME_URL = "https://drive.google.com/file/d/12B6imAoSFKITgq-HhQrbdywUkctsoaBR/view?usp=sharing";
+
+const socialLinks = [
+    { href: "https://github.com/Dues-ExMachina", label: "GitHub", icon: Github },
+    { href: "https://www.linkedin.com/in/anubhab-das45/", label: "LinkedIn", icon: Linkedin },
+];
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -33,7 +41,7 @@ export default function Navbar() {
         >
             <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
                 {/* Left links */}
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="hidden md:flex flex-1 items-center gap-8">
                     {leftLinks.map((link) => (
                         <Link
                             key={link.href}
@@ -62,7 +70,7 @@ export default function Navbar() {
                 </Link>
 
                 {/* Right links */}
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="hidden md:flex flex-1 items-center justify-end gap-6 lg:gap-8">
                     {rightLinks.map((link) => (
                         <Link
                             key={link.href}
@@ -72,6 +80,33 @@ export default function Navbar() {
                             {link.label}
                         </Link>
                     ))}
+                    <span className="w-px h-4 bg-navy-border" />
+                    <div className="flex items-center gap-3">
+                        {socialLinks.map(({ href, label, icon: Icon }) => (
+                            <a
+                                key={label}
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={label}
+                                title={label}
+                                className="text-text-muted hover:text-coral transition-colors duration-300"
+                            >
+                                <Icon size={16} />
+                            </a>
+                        ))}
+                    </div>
+                    <a
+                        href={RESUME_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative inline-flex items-center gap-1.5 px-4 py-2 border border-coral text-coral text-[10px] uppercase tracking-[0.2em] font-bold group overflow-hidden transition-colors duration-300 hover:text-white"
+                        style={{ fontFamily: "var(--font-space-mono)" }}
+                    >
+                        <span className="absolute inset-0 bg-coral -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                        <FileText size={12} className="relative z-10" />
+                        <span className="relative z-10">Resume</span>
+                    </a>
                 </nav>
 
                 {/* Mobile menu button */}
@@ -109,6 +144,30 @@ export default function Navbar() {
                             {link.label}
                         </Link>
                     ))}
+                    <div className="flex items-center gap-5 pt-4 border-t border-navy-border">
+                        {socialLinks.map(({ href, label, icon: Icon }) => (
+                            <a
+                                key={label}
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={label}
+                                className="text-text-muted hover:text-coral transition-colors duration-300"
+                            >
+                                <Icon size={18} />
+                            </a>
+                        ))}
+                        <a
+                            href={RESUME_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto inline-flex items-center gap-1.5 px-4 py-2 border border-coral text-coral text-[10px] uppercase tracking-[0.2em] font-bold"
+                            style={{ fontFamily: "var(--font-space-mono)" }}
+                        >
+                            <FileText size={12} />
+                            Resume
+                        </a>
+                    </div>
                 </motion.div>
             )}
         </header>

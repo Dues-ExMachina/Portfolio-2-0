@@ -6,41 +6,44 @@ import Link from "next/link";
 const works = [
     {
         id: "01",
+        title: "Y Cloude",
+        category: "AI Platform · Live",
+        image: "/ycloude.png",
+        url: "https://ycloude.com",
+        color: "from-coral/20 to-violet/20",
+        accent: "#FF3D5A",
+        featured: true,
+    },
+    {
+        id: "02",
         title: "AI Chatbot MCP",
         category: "AI Tools",
         image: "/FinanaceManager.png",
+        url: "https://ai-chatbot-mcp-cpwrf58ktxybtxpq8swjku.streamlit.app/",
         color: "from-cyan/20 to-violet/20",
         accent: "#00C8FF",
         featured: false,
     },
     {
-        id: "02",
+        id: "03",
         title: "LangGraph Chatbot",
         category: "AI Agents",
         image: "/agentic-chatbot.png",
+        url: "https://agentic-chatbot-dues.streamlit.app/",
         color: "from-violet/20 to-cyan/20",
         accent: "#8B5CF6",
         featured: false,
     },
     {
-        id: "03",
+        id: "04",
         title: "AI Blogger Agent",
         category: "AI Agents",
         image: "/Ai-Blog.png",
+        url: "https://ai-blogger-agent-beryl.vercel.app/",
         color: "from-coral/20 to-violet/20",
         accent: "#FF3D5A",
         featured: false,
     },
-    {
-        id: "04",
-        title: "Y-Cloude",
-        category: "AI Tools",
-        image: "/Ai-Blog.png",
-        color: "from-coral/20 to-violet/20",
-        accent: "#FF3D5A",
-        featured: true,
-    },
-    
 ];
 
 export default function FeaturedWorksGrid() {
@@ -82,10 +85,11 @@ export default function FeaturedWorksGrid() {
                             transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
                             whileHover={{ scale: 1.03 }}
                             className={`group relative bg-navy-card border rounded-sm overflow-hidden cursor-pointer transition-all duration-500 ${work.featured
-                                ? "lg:-mt-6 border-coral/50 shadow-[0_0_40px_rgba(255,61,90,0.2)] ring-1 ring-coral/30"
+                                ? "border-coral/50 shadow-[0_0_40px_rgba(255,61,90,0.2)] ring-1 ring-coral/30"
                                 : "border-navy-border hover:border-coral/40 hover:shadow-[0_0_30px_rgba(255,61,90,0.12)]"
                                 }`}
                         >
+                            <a href={work.url} target="_blank" rel="noopener noreferrer" className="block">
                             {/* Image placeholder — vivid gradient */}
                             <div
                                 className={`relative h-48 bg-linear-to-br ${work.color} overflow-hidden`}
@@ -94,7 +98,7 @@ export default function FeaturedWorksGrid() {
                                     <img
                                         src={work.image}
                                         alt={work.title}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
                                     />
                                 )}
                                 {/* Abstract grid lines */}
@@ -154,9 +158,10 @@ export default function FeaturedWorksGrid() {
                                     className="text-text-primary text-lg font-bold group-hover:text-coral transition-colors"
                                     style={{ fontFamily: "'Clash Display', sans-serif" }}
                                 >
-                                    {work.title}
+                                    {work.title} <span className="text-text-label group-hover:text-coral">↗</span>
                                 </h3>
                             </div>
+                            </a>
                         </motion.div>
                     ))}
                 </div>

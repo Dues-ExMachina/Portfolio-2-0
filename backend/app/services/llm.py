@@ -2,13 +2,18 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
+
+# Override from the environment if Groq retires a model: https://console.groq.com/docs/models
+GROQ_MODEL = os.getenv("GROQ_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
+GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.3-70b-versatile")
 
 def get_llm():
 
     llm = ChatGroq(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        model=GROQ_MODEL,
         timeout=60,  # 60 second timeout to prevent hanging
     )
     return llm
@@ -59,7 +64,7 @@ def generate_image_prompt(base64_image: str) -> str:
         print("[LLM FALLBACK] Using text-only fallback prompt...")
         try:
             fallback_llm = ChatGroq(
-                model="llama-3.3-70b-versatile",
+                model=GROQ_FALLBACK_MODEL,
                 timeout=30,
             )
             fallback_message = HumanMessage(
