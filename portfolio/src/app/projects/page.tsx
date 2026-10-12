@@ -17,6 +17,16 @@ const allProjects = [
         featured: true,
     },
     {
+        title: "SkyWatch — Drone Detection & Tracking",
+        description: "Real-time computer vision system that detects drones vs birds, tracks each object across frames and alerts when a drone enters a restricted zone — with 4 s look-ahead approach prediction. YOLO26n reaches 0.970 mAP50 with zero bird/drone confusions on the test split.",
+        tags: ["YOLO26", "ByteTrack", "OpenCV", "FastAPI", "React", "WebSocket"],
+        image: "/drone.png",
+        githubUrl: "https://github.com/Dues-ExMachina/SkyWatch-Drone-detection-tracking",
+        projectUrl: "https://github.com/Dues-ExMachina/SkyWatch-Drone-detection-tracking",
+        category: "Computer Vision",
+        featured: true,
+    },
+    {
         title: "AI Chatbot MCP",
         description: "A high-performance chat interface bridging LLMs with Model Context Protocol (MCP) servers. Features clean UI/UX and multi-server support.",
         tags: ["Python", "Streamlit", "LangChain", "MCP", "Groq"],

@@ -1,5 +1,6 @@
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedWorksGrid from "@/components/home/FeaturedWorksGrid";
+import SkyWatchShowcase from "@/components/home/SkyWatchShowcase";
 import PortfolioSpotlight from "@/components/home/PortfolioSpotlight";
 import FeaturedProject from "@/components/home/FeaturedProject";
 import CTAStripe from "@/components/home/CTAStripe";
@@ -13,6 +14,7 @@ export default function HomePage() {
       <HeroSection />
       <CurrentRole className="bg-navy-secondary" />
       <FeaturedWorksGrid />
+      <SkyWatchShowcase />
       <PortfolioSpotlight />
       <FeaturedProject />
       <CTAStripe />

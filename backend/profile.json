@@ -45,7 +45,11 @@
     "React Flow",
     "Playwright",
     "Browser Use",
-    "Jinja2 / WeasyPrint"
+    "Jinja2 / WeasyPrint",
+    "Computer Vision",
+    "YOLO",
+    "Object Tracking (ByteTrack)",
+    "OpenCV"
   ],
   "education": "B.Tech in Computer Science from Elitte College of Engineering (MAKAUT), Kolkata, 2023–2026, CGPA: 8 / 10",
   "experience": [
@@ -78,6 +82,25 @@
         "React"
       ],
       "url": "https://ycloude.com"
+    },
+    {
+      "name": "SkyWatch — Drone Detection and Tracking",
+      "description": "Computer vision prototype that watches a video file or live camera, detects drones and birds, tracks each object across frames, and raises an alert when a drone enters a restricted zone drawn on the video; it also predicts zone entry up to 4 seconds ahead. Pipeline: video/webcam -> YOLO26 detector -> ByteTrack tracker -> zone + alert rules -> FastAPI (MJPEG stream, WebSocket, REST, SQLite alert log with snapshots) -> React 19 + shadcn/ui dashboard. Features: two classes (drone, bird) so birds don't trigger alerts; majority class vote over 15 frames; flight paths, speed and compass heading; 5-consecutive-frame alert rule with re-arm and 5 s cooldown; runs fully offline on a laptop CPU at about 5-9 FPS. Results: YOLO26n trained on 13,973 cleaned Mendeley Drone-vs-Bird images (40 epochs, 640 px, Colab T4): test mAP50 0.970, mAP50-95 0.639, precision 0.956, recall 0.919; 0 birds called drone and 0 drones called bird on 889 test images. He also cleaned the dataset: fixed bird images mislabelled as drones, converted polygon labels to boxes, and repaired misplaced validation boxes. Honest limitations: close-up dataset bias, test split may be optimistic, false-alarm rate on drone-free video not yet measured; not a deployable counter-drone system.",
+      "tech_stack": [
+        "Python",
+        "YOLO26 (Ultralytics)",
+        "ByteTrack",
+        "OpenCV",
+        "FastAPI",
+        "WebSocket",
+        "SQLite",
+        "React 19",
+        "Vite",
+        "Tailwind CSS",
+        "shadcn/ui",
+        "Google Colab"
+      ],
+      "url": "https://github.com/Dues-ExMachina/SkyWatch-Drone-detection-tracking"
     },
     {
       "name": "CuraLink — Medical Research Assistant",
